@@ -2,9 +2,9 @@
 
 A collection of modern, beautiful Conky themes and widgets for Linux desktops.
 
-![GitHub repo size](https://img.shields.io/github/repo-size/your-username/conky-themes-widgets)
-![GitHub license](https://img.shields.io/github/license/your-username/conky-themes-widgets)
-![GitHub stars](https://img.shields.io/github/stars/your-username/conky-themes-widgets)
+![GitHub repo size](https://img.shields.io/github/repo-size/SethDigerati/conky-themes-widgets)
+![GitHub license](https://img.shields.io/github/license/SethDigerati/conky-themes-widgets)
+![GitHub stars](https://img.shields.io/github/stars/SethDigerati/conky-themes-widgets)
 
 ## 🎨 Available Themes
 
@@ -40,14 +40,14 @@ A collection of modern, beautiful Conky themes and widgets for Linux desktops.
 
 ### Option 1: Clone Everything
 ```bash
-git clone https://github.com/your-username/conky-themes-widgets.git
+git clone https://github.com/SethDigerati/conky-themes-widgets.git
 cd conky-themes-widgets
 ```
 
 ### Option 2: Download Individual Themes
 ```bash
 # Just the system monitor
-git clone --depth 1 --filter=blob:none --sparse https://github.com/your-username/conky-themes-widgets.git
+git clone --depth 1 --filter=blob:none --sparse https://github.com/SethDigerati/conky-themes-widgets.git
 cd conky-themes-widgets
 git sparse-checkout set overload
 
