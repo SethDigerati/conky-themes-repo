@@ -1,0 +1,29 @@
+# Conky Last.fm Panel Dependencies
+
+## Arch Linux Packages (Official Repos)
+conky              # Conky system monitor
+lua                # Lua interpreter
+curl               # For API requests
+cairo              # Cairo graphics library
+lua-lgi            # Lua GObject Introspection (for Cairo bindings)
+imagemagick        # Image manipulation (convert command)
+imlib2             # Image loading library
+jq                 # JSON processor for debugging
+file               # File type detection utility
+
+## Lua Packages (via luarocks)
+luarocks           # Lua package manager
+# dkjson           # JSON parsing library (install via luarocks)
+
+## AUR Packages (Optional - install with yay/paru)
+# lua-cairo        # Alternative Lua Cairo bindings
+# lua-json         # Alternative JSON library
+
+## Installation Commands:
+# pacman -S conky lua curl cairo lua-lgi imagemagick imlib2 jq file luarocks
+# luarocks install dkjson
+
+## Installation Commands:
+# sudo apt update
+# sudo apt install -y conky-all lua5.3 liblua5.3-dev libcairo2-dev libimlib2-dev curl imagemagick luarocks libgd-dev libjpeg-dev libpng-dev
+# sudo luarocks install dkjson

@@ -1,0 +1,114 @@
+# **********************************************************************
+# "CPU Panel (8-core)" theme for Conky by Tony George (teejee2008@gmail.com)
+#
+# Webpage: http://teejeetech.blogspot.in/
+# **********************************************************************
+
+
+background yes
+double_buffer yes
+
+alignment top_right
+
+border_width 1
+cpu_avg_samples 2
+default_color white
+default_outline_color white
+default_shade_color white
+draw_borders no
+draw_graph_borders yes
+draw_outline no
+draw_shades no
+
+gap_x 0
+gap_y 5
+net_avg_samples 2
+no_buffers yes
+out_to_console no
+out_to_stderr no
+extra_newline no
+
+own_window yes
+own_window_type normal
+own_window_transparent yes
+own_window_colour 000000
+own_window_argb_visual yes
+own_window_argb_value 80
+own_window_hints undecorated,below,sticky,skip_taskbar,skip_pager
+
+minimum_size 300 920
+maximum_width 300
+stippled_borders 0
+update_interval 1.0
+uppercase no
+use_spacer none
+
+show_graph_scale no
+show_graph_range no
+
+use_xft yes
+xftalpha 0.1
+xftfont 'Adawita Sans Light':size=10
+color0 white
+color1 EAEAEA
+color2 FFA300
+color3 grey
+color4 green
+color5 pink
+
+
+TEXT
+${image ./assets/archlinux-logo.png -s 300x100} ${voffset 80}
+${color2}SYSTEM ${color0}${voffset -2}${hr 1}
+Date: ${time %A, %B %d}${alignr}${time %H:%M}
+OS: ${execi 60 lsb_release -d | cut -f2-}          
+Kernel: ${kernel}
+Hostname: ${nodename}
+DE: ${execi 60 echo "$XDG_CURRENT_DESKTOP"} ${exec cat /etc/os-release | grep "VERSION=" | cut -d '"' -f2}${alignr}Uptime: ${uptime}
+Battery: ${battery BAT0}${alignr}${battery_time BAT0}
+${color2}CPU ${color0}${voffset -2}${hr 1}
+${cpu cpu0}% ${color3}${cpubar cpu0 5, }
+${cpugraph cpu0 70,}${offset}${voffset 9}
+ ${color2}${voffset -90}${acpitemp}°C ${voffset 50}${color}
+${cpugraph cpu1 50,150}${cpugraph cpu2 50,155}${voffset -18}
+${cpugraph cpu3 50,150}${cpugraph cpu4 50,155}
+${font Ubuntu:size=10}${voffset -110}${color3}${goto 10}1 ${goto 160}2 ${goto 0} ${voffset 50} ${goto 10}3 ${goto 160}4
+${font Ubuntu:size=8}${voffset -67}${color3}${goto 108}${freq_g (1)}GHz ${goto 258}${freq_g (2)}GHz ${goto 0}${voffset 50}${goto 108}${freq_g (3)}GHz ${goto 258}${freq_g (4)}GHz${font}${voffset 20}
+
+
+${top name 1} $alignr ${top cpu 1}%
+${top name 2} $alignr ${top cpu 2}%
+${top name 3} $alignr ${top cpu 3}%
+${top name 4} $alignr ${top cpu 4}%
+${top name 5} $alignr ${top cpu 5}%
+${voffset -7}${hr}
+${color2}MEMORY ${color0}${voffset -2}${hr 1}
+${membar 5,}${voffset -3}
+Used: ${memperc}%${alignr}${mem}/${memmax}${color}
+${top_mem name 1} $alignr ${top_mem mem_res 1}
+${top_mem name 2} $alignr ${top_mem mem_res 2}
+${top_mem name 3} $alignr ${top_mem mem_res 3}
+${top_mem name 4} $alignr ${top_mem mem_res 4}
+${top_mem name 5} $alignr ${top_mem mem_res 5}
+${voffset -7}${hr}
+${color2}SWAP ${color0}${voffset -2}${hr 1}
+${swapbar 5,}
+Used: ${swapperc}%${alignr}${swap}/${swapmax}
+${top_swap name 1} $alignr ${top_swap swap_res 1}
+${top_swap name 2} $alignr ${top_swap swap_res 2}
+
+${color2}DISK ${color0}${voffset -2}${hr 1}
+${fs_used /}/${fs_size /} ${alignr}${fs_free /}
+${fs_bar 5 /}${voffset -10}
+
+${color2}NETWORK ${color0}${voffset -2}${hr 1}${voffset 5}
+Bitrate: ${wireless_bitrate ${gw_iface}}${alignr}Ping: ${execi 10 ping -c 1 -w 1 139.84.229.82 | grep 'time=' | awk -F'time=' '{print $2}' | cut -d' ' -f1} ms
+SSID: ${wireless_essid ${gw_iface}}${alignr}Signal Strength: ${wireless_link_qual_perc ${gw_iface}}%
+Downloaded: ${totaldown ${gw_iface}}${alignr}Uploaded: ${totalup ${gw_iface}}
+${voffset 10}${color2} Download: ${color0}${downspeedf ${gw_iface}} KiB/s ${voffset -25}
+${downspeedgraph ${gw_iface} 80,}
+${voffset -17}${upspeedgraph ${gw_iface} 80, -y}
+ ${voffset -30}${color2}Upload: ${color0}${upspeedf ${gw_iface}} KiB/s ${voffset 20}
+${color2}Local${color0}${alignr}${addr ${gw_iface}}
+${color2}Public${color0}${alignr}${execi 3600 wget -q -O /dev/stdout http://checkip.dyndns.org/ | cut -d : -f 2- | cut -d \< -f -1}
+${voffset -40}

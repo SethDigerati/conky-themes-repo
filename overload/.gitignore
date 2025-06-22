@@ -1,0 +1,11 @@
+# System generated files
+.DS_Store
+Thumbs.db
+
+# Backup files
+*~
+*.bak
+*.backup
+
+# User specific configuration
+conkyrc.local

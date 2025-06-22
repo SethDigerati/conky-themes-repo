@@ -1,0 +1,21 @@
+# API configuration (contains sensitive information)
+api_config.lua
+
+# Generated assets
+assets/cover*.png
+assets/cover*.jpg
+assets/*.json
+assets/*.log
+assets/temp_*
+
+# System generated files
+.DS_Store
+Thumbs.db
+
+# Backup files
+*~
+*.bak
+*.backup
+
+# User specific configuration
+"lastfm panel.local"

@@ -1,0 +1,35 @@
+-- Last.fm API Configuration Template
+-- Copy this file to 'api_config.lua' and fill in your own credentials
+
+local api_config = {}
+
+-- Last.fm API credentials
+-- Get your API key from: https://www.last.fm/api/account/create
+api_config.API_KEY = "YOUR_API_KEY_HERE"
+api_config.USERNAME = "YOUR_LASTFM_USERNAME_HERE"
+
+-- API endpoints
+api_config.BASE_URL = "https://ws.audioscrobbler.com/2.0/"
+
+-- API methods
+api_config.METHODS = {
+    RECENT_TRACKS = "user.getrecenttracks",
+    TRACK_INFO = "track.getInfo",
+    USER_TRACK_SCROBBLES = "user.getTrackScrobbles"
+}
+
+-- Helper function to build API URLs
+function api_config.build_url(method, params)
+    local url = api_config.BASE_URL .. "?method=" .. method .. "&api_key=" .. api_config.API_KEY .. "&format=json"
+    
+    if params then
+        for key, value in pairs(params) do
+            local encoded_value = tostring(value):gsub(" ", "%%20"):gsub("&", "%%26")
+            url = url .. "&" .. key .. "=" .. encoded_value
+        end
+    end
+    
+    return url
+end
+
+return api_config

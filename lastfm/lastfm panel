@@ -1,0 +1,72 @@
+background yes                         # Run in background: yes, no
+double_buffer yes                      # Double buffering (reduces flicker): yes, no
+alignment bottom_right
+border_width 1                         # Border width in pixels: number
+cpu_avg_samples 2                      # CPU averaging samples: number (1-8)
+default_color white                    # Default text color: color name or hex
+default_outline_color white            # Default outline color: color name or hex  
+default_shade_color white              # Default shade color: color name or hex
+draw_borders no                        # Draw borders: yes, no
+draw_graph_borders yes                 # Draw graph borders: yes, no
+draw_outline no                        # Draw text outline: yes, no
+draw_shades no                         # Draw text shades: yes, no
+gap_x 0
+gap_y 10
+net_avg_samples 2                      # Network averaging samples: number (1-8)
+no_buffers yes                         # Subtract buffers from used memory: yes, no
+out_to_console no                      # Output to console: yes, no
+out_to_stderr no                       # Output to stderr: yes, no
+extra_newline no                       # Add extra newline at end: yes, no
+own_window yes                         # Create own window: yes, no
+own_window_type normal                # Window type: normal, desktop, dock, panel, override - DESKTOP = no background
+own_window_transparent yes
+imlib_cache_size 0                    # Disable image cache globally - Options: 0 (disabled), number (cache size in bytes)
+draw_blended false
+own_window_colour 000000
+own_window_argb_visual yes
+own_window_argb_value 0
+own_window_hints undecorated,below,sticky,skip_taskbar,skip_pager  # Window hints: undecorated, below, above, sticky, skip_taskbar, skip_pager
+minimum_size 300 270
+maximum_width 300                      # Maximum window width: number
+stippled_borders 0                     # Stippled border width: number
+update_interval 1                      # Update interval in seconds: number
+uppercase no                           # Convert text to uppercase: yes, no
+use_spacer none                        # Use spacer: none, left, right
+show_graph_scale no                    # Show graph scale: yes, no
+show_graph_range no                    # Show graph range: yes, no
+use_xft yes                           # Use Xft fonts: yes, no
+xftalpha 0.1                          # Xft alpha (text transparency): 0.0-1.0
+xftfont 'Adawita Sans Light':size=10   # Xft font: 'fontname':size=number
+color0 white                          # Color 0: color name or hex
+color1 EAEAEA                         # Color 1: color name or hex
+color2 FFA300                         # Color 2: color name or hex
+color3 grey                           # Color 3: color name or hex
+color4 red                            # Color 4: color name or hex
+
+
+
+lua_load './lastfm.lua'
+lua_draw_hook_pre conky_update_lastfm
+
+own_window_colour 000000
+TEXT
+${color2}LAST.FM${color1} ${hr 1}
+${color2}${lua conky_nowplaying1}${color}
+${image ./assets/cover1.png -p 0,35 -s 100x100}
+${goto 110}${color2}Track:${color1} ${lua conky_track1}
+${goto 110}${color2}Artist:${color1} ${lua conky_artist1}
+${goto 110}${color2}Album:${color1} ${lua conky_album1}
+${goto 110}${color2}Duration:${color1} ${lua conky_duration1}
+${goto 110}${color2}Plays:${color1} ${lua conky_playcount1}
+${voffset 10}${color2}Recent Tracks:${color}
+${voffset -10}${color1}${hr}${voffset -15}
+
+${image ./assets/cover2.png -p 0,160 -s 80x80}${goto 90}${color2}Track:${color1} ${lua conky_track2}
+${goto 90}${color2}Artist:${color1} ${lua conky_artist2}
+${goto 90}${color2}Album:${color1} ${lua conky_album2}
+${goto 90}${color2}Duration:${color1} ${lua conky_duration2} ${color2}Plays:${color1} ${lua conky_playcount2}
+
+${image ./assets/cover3.png -p 0,245 -s 80x80}${goto 90}${color2}Track:${color1} ${lua conky_track3}
+${goto 90}${color2}Artist:${color1} ${lua conky_artist3}
+${goto 90}${color2}Album:${color1} ${lua conky_album3}
+${goto 90}${color2}Duration:${color1} ${lua conky_duration3} ${color2}Plays:${color1} ${lua conky_playcount3}

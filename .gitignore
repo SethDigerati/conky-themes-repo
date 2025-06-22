@@ -1,0 +1,34 @@
+# User-specific API configurations
+lastfm/api_config.lua
+
+# Generated assets and cache files
+lastfm/assets/cover*.png
+lastfm/assets/cover*.jpg
+lastfm/assets/*.json
+lastfm/assets/*.log
+lastfm/assets/temp_*
+
+# System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Backup files
+*.bak
+*.backup
+*.orig
+
+# User-specific configurations
+*.local
+*_local.*
