@@ -241,8 +241,8 @@ conky -c config-file
 ## 📞 Contact
 
 - **Maintainer**: [Your Name]
-- **Email**: your-email@example.com
-- **GitHub**: [@your-username]
+- **Email**: sethodhiambojad@gmail.com
+- **GitHub**: [@SethDigerati]
 
 ---
 

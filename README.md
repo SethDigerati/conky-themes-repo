@@ -213,9 +213,9 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ## 📞 Support
 
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/your-username/conky-themes-widgets/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/your-username/conky-themes-widgets/discussions)
-- 📧 **Email**: your-email@example.com
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/SethDigeraticonky-themes-widgets/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/SethDigerati/conky-themes-widgets/discussions)
+- 📧 **Email**: sethodhiambojad@gmail.com
 
 ---
 
