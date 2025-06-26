@@ -1,7 +1,5 @@
 # **********************************************************************
 # "CPU Panel (8-core)" theme for Conky by Tony George (teejee2008@gmail.com)
-#
-# Webpage: http://teejeetech.blogspot.in/
 # **********************************************************************
 
 
@@ -68,7 +66,7 @@ DE: ${execi 60 echo "$XDG_CURRENT_DESKTOP"} ${exec cat /etc/os-release | grep "V
 Battery: ${battery BAT0}${alignr}${battery_time BAT0}
 ${color2}CPU ${color0}${voffset -2}${hr 1}
 ${cpu cpu0}% ${color3}${cpubar cpu0 5, }
-${cpugraph cpu0 70,}${offset}${voffset 9}
+${cpugraph cpu0 70, }${offset}${voffset 9}
  ${color2}${voffset -90}${acpitemp}°C ${voffset 50}${color}
 ${cpugraph cpu1 50,150}${cpugraph cpu2 50,155}${voffset -18}
 ${cpugraph cpu3 50,150}${cpugraph cpu4 50,155}
