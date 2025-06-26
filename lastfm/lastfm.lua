@@ -37,6 +37,9 @@ end
 local cache = {}
 local cache_timeout = 30 -- seconds
 
+-- Cache for image URLs to avoid re-downloading the same image
+local image_url_cache = {}
+
 local function fetch_json()
     local url = api.build_url(api.METHODS.RECENT_TRACKS, {
         user = api.USERNAME,
@@ -180,19 +183,36 @@ local function get_track_info_cached(artist, track)
 end
 
 local function download_image_if_needed(image_url, image_path)
-    if not image_url or image_url == "" then return false end
-    
-    -- Check if image already exists and is recent (less than 1 hour old)
-    local stat = io.popen("stat -c %Y " .. image_path .. " 2>/dev/null")
-    local mtime = stat:read("*n")
-    stat:close()
-    
-    if mtime and (os.time() - mtime) < 3600 then
-        return true -- Use existing image
+    if not image_url or image_url == "" then 
+        log("No image URL provided for " .. image_path)
+        return false 
     end
     
+    -- Check if we already have this exact image URL cached for this path
+    if image_url_cache[image_path] == image_url then
+        -- Check if the file still exists
+        local f = io.open(image_path, "r")
+        if f then
+            f:close()
+            log("Using cached image for " .. image_path)
+            return true -- Use existing image
+        end
+    end
+    
+    -- Download new image
+    log("Downloading new image from " .. image_url .. " to " .. image_path)
     local cmd = string.format('%s -s -S -o "%s" "%s" 2>/dev/null', curl, image_path, image_url)
-    return os.execute(cmd)
+    local success = os.execute(cmd)
+    
+    if success then
+        -- Cache the URL for this image path
+        image_url_cache[image_path] = image_url
+        log("Successfully downloaded and cached image for " .. image_path)
+    else
+        log("Failed to download image from " .. image_url)
+    end
+    
+    return success
 end
 
 function conky_update_lastfm()
