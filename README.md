@@ -2,9 +2,9 @@
 
 A collection of modern, beautiful Conky themes and widgets for Linux desktops.
 
-![GitHub repo size](https://img.shields.io/github/repo-size/SethDigerati/conky-themes-widgets)
-![GitHub license](https://img.shields.io/github/license/SethDigerati/conky-themes-widgets)
-![GitHub stars](https://img.shields.io/github/stars/SethDigerati/conky-themes-widgets)
+![GitHub repo size](https://img.shields.io/github/repo-size/SethDigerati/conky-themes-repo)
+![GitHub license](https://img.shields.io/github/license/SethDigerati/conky-themes-repo)
+![GitHub stars](https://img.shields.io/github/stars/SethDigerati/conky-themes-repo)
 
 ## 🎨 Available Themes
 
@@ -40,14 +40,14 @@ A collection of modern, beautiful Conky themes and widgets for Linux desktops.
 
 ### Option 1: Clone Everything
 ```bash
-git clone https://github.com/SethDigerati/conky-themes-widgets.git
+git clone https://github.com/SethDigerati/conky-themes-repo.git
 cd conky-themes-widgets
 ```
 
 ### Option 2: Download Individual Themes
 ```bash
 # Just the system monitor
-git clone --depth 1 --filter=blob:none --sparse https://github.com/SethDigerati/conky-themes-widgets.git
+git clone --depth 1 --filter=blob:none --sparse https://github.com/SethDigerati/conky-themes-repo.git
 cd conky-themes-widgets
 git sparse-checkout set overload
 
@@ -165,7 +165,7 @@ conky-themes-widgets/
     ├── 📋 api_config.lua.template  # API setup
     ├── 🛠️ install.sh        # Installation script
     └── 📁 assets/           # Screenshots & cache
-```
+...more
 
 ## 🤝 Contributing
 
@@ -189,16 +189,13 @@ Contributions are welcome! Here's how:
 ### Planned Themes
 - [ ] 🌡️ Weather widget
 - [ ] 📈 Cryptocurrency tracker
-- [ ] 📧 Email notifications
-- [ ] 🔗 Network monitor
-- [ ] 💾 Disk usage analyzer
+- [ ] 🔗 Network monitor ✅
+- [ ] 💾 Disk usage analyzer ✅
 
 ### Planned Features
 - [ ] 🎨 Theme manager script
 - [ ] 🔄 Auto-updater
-- [ ] 🎯 GUI configuration tool
-- [ ] 📱 Mobile-responsive layouts
-- [ ] 🌙 Dark/light mode toggle
+
 
 ## 📄 License
 
@@ -213,8 +210,8 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ## 📞 Support
 
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/SethDigeraticonky-themes-widgets/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/SethDigerati/conky-themes-widgets/discussions)
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/SethDigeraticonky-themes-repo/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/SethDigerati/conky-themes-repo/discussions)
 - 📧 **Email**: sethodhiambojad@gmail.com
 
 ---
