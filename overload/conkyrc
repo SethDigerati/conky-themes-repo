@@ -1,9 +1,8 @@
 # **********************************************************************
-# "CPU Panel (8-core)" theme for Conky by Tony George (teejee2008@gmail.com)
-#
-# Webpage: http://teejeetech.blogspot.in/
+#  Conky Theme: Overload
+#  Author: Seth Digerati
+#  Description: A redesign of teejeetech's(teejee2008@gmail.com) original conky theme
 # **********************************************************************
-
 
 background yes
 double_buffer yes
@@ -95,15 +94,3 @@ ${swapbar 5,}
 ${color2}DISK ${color0}${voffset -2}${hr 1}${voffset -5}
 ${fs_used /}/${fs_size /} ${alignr}${fs_free /}${voffset -5}
 ${fs_bar 5 /}${voffset -5}
-${color2}NETWORK ${color0}${voffset -2}${hr 1}${voffset -5}
-Bitrate: ${wireless_bitrate ${gw_iface}}${alignr}Ping: ${execi 10 ping -c 1 -w 1 139.84.229.82 | grep 'time=' | awk -F'time=' '{print $2}' | cut -d' ' -f1} ms
-SSID: ${wireless_essid ${gw_iface}}${alignr}Signal Strength: ${wireless_link_qual_perc ${gw_iface}}%
-Downloaded: ${totaldown ${gw_iface}}${alignr}Uploaded: ${totalup ${gw_iface}}${voffset -12}
-${voffset 10}${color2} Download: ${color0}${downspeedf ${gw_iface}} KiB/s ${voffset -25}
-${downspeedgraph ${gw_iface} 80,}
-${voffset -19}${upspeedgraph ${gw_iface} 80, -y}
-${voffset -30}${color2} Upload: ${color0}${upspeedf ${gw_iface}} KiB/s 
-${color2}IP ADDRESS ${color0}${voffset -2}${hr 1}${voffset -5}
-${color2}Local${color0}${alignr}${addr ${gw_iface}}
-${color2}Public${color0}${alignr}${execi 3600 wget -q -O /dev/stdout http://checkip.dyndns.org/ | cut -d : -f 2- | cut -d \< -f -1}${voffset -12}
-${hr}${voffset -5}

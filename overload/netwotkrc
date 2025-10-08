@@ -1,0 +1,69 @@
+
+background yes
+double_buffer yes
+
+alignment bottom_right
+
+border_width 1
+cpu_avg_samples 2
+default_color white
+default_outline_color white
+default_shade_color white
+draw_borders no
+draw_graph_borders yes
+draw_outline no
+draw_shades no
+
+gap_x 0
+gap_y 210
+net_avg_samples 2
+no_buffers yes
+out_to_console no
+out_to_stderr no
+extra_newline no
+
+own_window yes
+own_window_type normal
+own_window_transparent yes
+own_window_colour 000000
+own_window_argb_visual yes
+own_window_argb_value 80
+own_window_hints undecorated,below,sticky,skip_taskbar,skip_pager
+
+minimum_size 300 500
+maximum_width 300
+stippled_borders 0
+update_interval 1.0
+uppercase no
+use_spacer none
+
+show_graph_scale no
+show_graph_range no
+
+use_xft yes
+xftalpha 0.1
+xftfont 'Adawita Sans Light':size=10
+color0 white
+color1 EAEAEA
+color2 FFA500
+color3 blue
+color4 green
+color5 pink
+
+TEXT
+${color2}NETWORK ${color0}${voffset -2}${hr 1}${voffset -5}
+Bitrate: ${wireless_bitrate ${gw_iface}}${alignr}Signal Strength: ${wireless_link_qual_perc ${gw_iface}}%
+SSID: ${wireless_essid ${gw_iface}}
+${execpi 5 jq -r '"ISP: \(.isp)\nLatency: \(.latency) ms\nLoss: \(.loss)%"' ~/.cache/netstats/netstats.json}
+${alignr}${execpi 5 jq -r '"\nJitter: \(.jitter) ms"' ~/.cache/netstats/netstats.json}
+
+Downloaded: ${totaldown ${gw_iface}}${alignr}Uploaded: ${totalup ${gw_iface}}${voffset -12}
+${voffset 10}${color2} Download: ${color0}${downspeedf ${gw_iface}} KiB/s ${voffset -25}
+${downspeedgraph ${gw_iface} 80,}
+${voffset -19}${upspeedgraph ${gw_iface} 80, -y}
+${voffset -30}${color2} Upload: ${color0}${upspeedf ${gw_iface}} KiB/s 
+${color2}IP ADDRESS ${color0}${voffset -2}${hr 1}${voffset -5}
+${color2}Local${color0}${alignr}${addr ${gw_iface}}
+${color2}Public${color0}${alignr}${execi 3600 wget -q -O /dev/stdout http://checkip.dyndns.org/ | cut -d : -f 2- | cut -d \< -f -1}${voffset -12}
+${hr}${voffset -5}
+
