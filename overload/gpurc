@@ -1,0 +1,67 @@
+# **********************************************************************
+#  Conky Theme: Overload
+#  Author: Seth Digerati
+#  Description: A fork and redesign of teejeetech's(teejee2008@gmail.com) original conky theme
+# **********************************************************************
+
+background yes
+double_buffer yes
+
+alignment bottom_right
+
+border_width 1
+cpu_avg_samples 2
+default_color white
+default_outline_color white
+default_shade_color white
+draw_borders no
+draw_graph_borders yes
+draw_outline no
+draw_shades no
+
+gap_x 0
+gap_y 450
+net_avg_samples 2
+no_buffers yes
+out_to_console no
+out_to_stderr no
+extra_newline no
+
+own_window yes
+own_window_type normal
+own_window_transparent yes
+own_window_colour 000000
+own_window_argb_visual yes
+own_window_argb_value 80
+own_window_hints undecorated,below,sticky,skip_taskbar,skip_pager
+
+minimum_size 300 180
+maximum_width 300
+stippled_borders 0
+update_interval 1.0
+uppercase no
+use_spacer none
+
+show_graph_scale no
+show_graph_range no
+
+use_xft yes
+xftalpha 0.1
+xftfont 'Adawita Sans Light':size=10
+color0 white
+color1 EAEAEA
+color2 FFA500
+color3 blue
+color4 green
+color5 pink
+
+TEXT
+${color2}GPU${color}${voffset -2}${hr 1}${voffset -5}
+${voffset 4}${color1}Model:${color} ${scroll 50 5 ${exec lspci | grep -i vga | cut -d: -f3 | sed 's/^ *//' | head -1}}${voffset -5}
+${color1}Driver:${color} ${alignr}${exec lsmod | grep -E '^i915|^xe' | awk '{print $1}' | head -1 || echo "Unknown"}
+${color1}Memory Usage:${color} ${alignr}${exec cat /proc/meminfo | grep -i shmem | awk '{print int($2/1024)}' | head -1 || echo "0"} / ${exec grep MemTotal /proc/meminfo | awk '{print int($2/1024)}'} MB
+${color1}Temperature:${color} ${alignr}${exec sensors 2>/dev/null | grep -E "Package|Core|temp1" | head -1 | awk '{print $2}' | sed 's/+//;s/°C.*//' || echo "N/A"}°C
+${color1}Frequency:${color} ${alignr}${exec cat /sys/class/drm/card*/gt_cur_freq_mhz 2>/dev/null | head -1 || echo "N/A"} MHz
+${color1}Max Frequency:${color}${alignr}${exec cat /sys/class/drm/card*/gt_max_freq_mhz 2>/dev/null | head -1 || echo "N/A"} MHz
+${color1}Driver Version:${color}${alignr}${exec uname -r | cut -d'-' -f1}
+${voffset -12}${stippled_hr 1}
