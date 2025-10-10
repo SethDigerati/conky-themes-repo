@@ -20,7 +20,7 @@ draw_outline no
 draw_shades no
 
 gap_x 0
-gap_y 500
+gap_y 640
 net_avg_samples 2
 no_buffers yes
 out_to_console no
@@ -55,12 +55,20 @@ color3 blue
 color4 green
 color5 pink
 
+
 TEXT
-${color2}GPU${color}${voffset -2}${hr 1}${voffset -5}
-${voffset 4}${color1}Model:${color} ${scroll 50 5 ${exec lspci | grep -i vga | cut -d: -f3 | sed 's/^ *//' | head -1}}${voffset -5}
-${color1}Driver:${color} ${alignr}${exec lsmod | grep -E '^i915|^xe' | awk '{print $1}' | head -1 || echo "Unknown"}
-${color1}Memory Usage:${color} ${alignr}${exec cat /proc/meminfo | grep -i shmem | awk '{print int($2/1024)}' | head -1 || echo "0"} / ${exec grep MemTotal /proc/meminfo | awk '{print int($2/1024)}'} MB
-${color1}Temperature:${color} ${alignr}${exec sensors 2>/dev/null | grep -E "Package|Core|temp1" | head -1 | awk '{print $2}' | sed 's/+//;s/°C.*//' || echo "N/A"}°C
-${color1}Frequency:${color} ${alignr}${exec cat /sys/class/drm/card*/gt_cur_freq_mhz 2>/dev/null | head -1 || echo "N/A"} MHz/${color}${alignr}${exec cat /sys/class/drm/card*/gt_max_freq_mhz 2>/dev/null | head -1 || echo "N/A"} MHz
-${color1}Driver Version:${color}${alignr}${exec uname -r | cut -d'-' -f1}
-${voffset -12}${stippled_hr 1}
+${voffset -10}${color2}MEMORY ${color0}${voffset -2}${hr 1}${voffset -5}
+Used: ${memperc}%${alignr}${mem}/${memmax}${color}${voffset -5}
+${membar 5,}${voffset -7}
+${top_mem name 1} $alignr ${top_mem mem_res 1}
+${top_mem name 2} $alignr ${top_mem mem_res 2}
+${top_mem name 3} $alignr ${top_mem mem_res 3}
+${top_mem name 4} $alignr ${top_mem mem_res 4}
+${top_mem name 5} $alignr ${top_mem mem_res 5}
+${voffset -12}${stippled_hr}${voffset -5}
+${color2}SWAP ${color0}${voffset -2}${hr 1}${voffset -5}
+Used: ${swapperc}%${alignr}${swap}/${swapmax}${voffset -5}
+${swapbar 5,}
+${color2}DISK ${color0}${voffset -2}${hr 1}${voffset -5}
+${fs_used /}/${fs_size /} ${alignr}${fs_free /}${voffset -5}
+${fs_bar 5 /}${voffset -5}
