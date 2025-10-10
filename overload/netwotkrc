@@ -15,7 +15,7 @@ draw_outline no
 draw_shades no
 
 gap_x 0
-gap_y 210
+gap_y 100
 net_avg_samples 2
 no_buffers yes
 out_to_console no

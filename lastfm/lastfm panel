@@ -1,6 +1,6 @@
 background yes                         # Run in background: yes, no
 double_buffer yes                      # Double buffering (reduces flicker): yes, no
-alignment bottom_right
+alignment middle_left
 border_width 1                         # Border width in pixels: number
 cpu_avg_samples 2                      # CPU averaging samples: number (1-8)
 default_color white                    # Default text color: color name or hex
