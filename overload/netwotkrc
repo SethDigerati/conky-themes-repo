@@ -1,3 +1,9 @@
+# **********************************************************************
+#  Conky Theme: Overload
+#  Author: Seth Digerati
+#  Description: A fork and redesign of teejeetech's(teejee2008@gmail.com) original conky theme
+# **********************************************************************
+
 
 background yes
 double_buffer yes
@@ -15,7 +21,7 @@ draw_outline no
 draw_shades no
 
 gap_x 0
-gap_y 100
+gap_y 0
 net_avg_samples 2
 no_buffers yes
 out_to_console no
@@ -30,7 +36,7 @@ own_window_argb_visual yes
 own_window_argb_value 80
 own_window_hints undecorated,below,sticky,skip_taskbar,skip_pager
 
-minimum_size 300 500
+minimum_size 180 180
 maximum_width 300
 stippled_borders 0
 update_interval 1.0
@@ -56,14 +62,13 @@ Bitrate: ${wireless_bitrate ${gw_iface}}${alignr}Signal Strength: ${wireless_lin
 SSID: ${wireless_essid ${gw_iface}}
 ${execpi 5 jq -r '"ISP: \(.isp)\nLatency: \(.latency) ms\nLoss: \(.loss)%"' ~/.cache/netstats/netstats.json}
 ${alignr}${execpi 5 jq -r '"\nJitter: \(.jitter) ms"' ~/.cache/netstats/netstats.json}
-
+${wireless_link_qual ${gw_iface}} / ${wireless_link_qual_max ${gw_iface}}
 Downloaded: ${totaldown ${gw_iface}}${alignr}Uploaded: ${totalup ${gw_iface}}${voffset -12}
 ${voffset 10}${color2} Download: ${color0}${downspeedf ${gw_iface}} KiB/s ${voffset -25}
 ${downspeedgraph ${gw_iface} 80,}
 ${voffset -19}${upspeedgraph ${gw_iface} 80, -y}
 ${voffset -30}${color2} Upload: ${color0}${upspeedf ${gw_iface}} KiB/s 
 ${color2}IP ADDRESS ${color0}${voffset -2}${hr 1}${voffset -5}
-${color2}Local${color0}${alignr}${addr ${gw_iface}}
+${color2}Local${color0}${alignr}${gw_ip}
 ${color2}Public${color0}${alignr}${execi 3600 wget -q -O /dev/stdout http://checkip.dyndns.org/ | cut -d : -f 2- | cut -d \< -f -1}${voffset -12}
-${hr}${voffset -5}
-
+${stippled_hr}${voffset -5}

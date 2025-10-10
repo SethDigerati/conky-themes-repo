@@ -1,7 +1,7 @@
 # **********************************************************************
 #  Conky Theme: Overload
 #  Author: Seth Digerati
-#  Description: A redesign of teejeetech's(teejee2008@gmail.com) original conky theme
+#  Description: A fork and redesign of teejeetech's(teejee2008@gmail.com) original conky theme
 # **********************************************************************
 
 background yes
@@ -78,7 +78,7 @@ ${top name 2} $alignr ${top cpu 2}%
 ${top name 3} $alignr ${top cpu 3}%
 ${top name 4} $alignr ${top cpu 4}%
 ${top name 5} $alignr ${top cpu 5}%
-${voffset -12}${hr}
+${voffset -12}${stippled_hr}
 ${voffset -10}${color2}MEMORY ${color0}${voffset -2}${hr 1}${voffset -5}
 Used: ${memperc}%${alignr}${mem}/${memmax}${color}${voffset -5}
 ${membar 5,}${voffset -7}
@@ -87,7 +87,7 @@ ${top_mem name 2} $alignr ${top_mem mem_res 2}
 ${top_mem name 3} $alignr ${top_mem mem_res 3}
 ${top_mem name 4} $alignr ${top_mem mem_res 4}
 ${top_mem name 5} $alignr ${top_mem mem_res 5}
-${voffset -12}${hr}${voffset -5}
+${voffset -12}${stippled_hr}${voffset -5}
 ${color2}SWAP ${color0}${voffset -2}${hr 1}${voffset -5}
 Used: ${swapperc}%${alignr}${swap}/${swapmax}${voffset -5}
 ${swapbar 5,}
