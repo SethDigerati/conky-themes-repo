@@ -12,6 +12,7 @@ jq                 # JSON processor for debugging
 file               # File type detection utility
 cronie             # Daemon that runs specified programs at scheduled times and related tools
 speedtest-cli      # Internet speed test tool
+intel-gpu-tools    # Intel GPU tools (optional, for Intel GPU monitoring)
 
 ## Lua Packages (via luarocks)
 luarocks           # Lua package manager
