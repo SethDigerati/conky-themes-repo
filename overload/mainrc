@@ -71,8 +71,8 @@ ${cpugraph cpu0 70,}${offset}${voffset 9}
 ${color2}${voffset -90}${acpitemp} °C ${voffset 50}${color}${voffset -5}
 ${cpugraph cpu1 50,150}${cpugraph cpu2 50,149}${voffset -18}
 ${cpugraph cpu3 50,150}${cpugraph cpu4 50,149}
-${font Ubuntu:size=10}${voffset -110}${color3}${goto 10}1 ${goto 160}2 ${goto 0} ${voffset 50} ${goto 10}3 ${goto 160}4
-${font Ubuntu:size=8}${voffset -67}${color3}${goto 108}${freq_g (1)}GHz ${goto 258}${freq_g (2)}GHz ${goto 0}${voffset 50}${goto 108}${freq_g (3)}GHz ${goto 258}${freq_g (4)}GHz${font}${voffset 25}
+${voffset -110}${color2}${goto 10}1 ${goto 160}2 ${goto 0} ${voffset 50} ${goto 10}3 ${goto 160}4
+${voffset -67}${color2}${goto 108}${freq_g (1)}GHz ${goto 258}${freq_g (2)}GHz ${goto 0}${voffset 50}${goto 108}${freq_g (3)}GHz ${goto 258}${freq_g (4)}GHz${font}${voffset 25}
 ${color0}${top name 1} $alignr ${top cpu 1}%
 ${top name 2} $alignr ${top cpu 2}%
 ${top name 3} $alignr ${top cpu 3}%
