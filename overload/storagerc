@@ -1,74 +1,112 @@
-# **********************************************************************
-#  Conky Theme: Overload
-#  Author: Seth Digerati
-#  Description: A fork and redesign of teejeetech's(teejee2008@gmail.com) original conky theme
-# **********************************************************************
+-- **********************************************************************
+--  Conky Theme: Overload
+--  Author: Seth Digerati
+--  Description: A fork and redesign of teejeetech(teejee2008@gmail.com) original conky theme
+-- **********************************************************************
 
-background yes
-double_buffer yes
+conky.config = 
+{
+    -- Basic settings
+    background = true,
+    
+    -- Position
+    alignment = 'top_right',
+    
+    -- Border settings
+    border_width = 1,
+    draw_borders = false,
+    draw_outline = false,
+    
+    -- Sampling
+    cpu_avg_samples = 10,
+    net_avg_samples = 10,
+    diskio_avg_samples = 10,
+    
+    -- Buffer and output settings
+    no_buffers = true,
+    out_to_console = false,
+    out_to_stderr = false,
+    extra_newline = false,
+    double_buffer = true,
+    draw_shades = false,
+    
 
-alignment top_right
+    
+    -- Placement
+    gap_x = 0,
+    gap_y = 730,
+    
+    -- Window properties
+    own_window = true,
+    own_window_type = 'normal',
+    own_window_transparent = true,
+    own_window_colour = '000000',
+    own_window_argb_visual = true,
+    own_window_argb_value = 0,
+    own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',
+    
+    -- Size
+    minimum_width = 400,
+    minimum_height = 180,
+    maximum_width = 400,
+    
+    -- Misc settings
+    stippled_borders = 0,
+    update_interval = 2.0,
+    uppercase = false,
+    use_spacer = 'none',
+    temperature_unit = 'celsius',
+    
+    -- Graph display
+    show_graph_scale = false,
+    show_graph_range = false,
+    draw_graph_borders = false,
+    
+    -- Text and font
+    use_xft = true,
+    xftalpha = 1,
+    font = 'FreeSans:size=10',
+    
+    -- Colors
+    default_color = 'white',
+    default_outline_color = 'white',
+    default_shade_color = 'white',
+    color0 = 'white',
+    color1 = '#EAEAEA',
+    color2 = '#FFA500',
+    color3 = 'blue',
+    color4 = 'green',
+    color5 = 'pink',
+}
 
-border_width 1
-cpu_avg_samples 2
-default_color white
-default_outline_color white
-default_shade_color white
-draw_borders no
-draw_graph_borders yes
-draw_outline no
-draw_shades no
-
-gap_x 0
-gap_y 640
-net_avg_samples 2
-no_buffers yes
-out_to_console no
-out_to_stderr no
-extra_newline no
-
-own_window yes
-own_window_type normal
-own_window_transparent yes
-own_window_colour 000000
-own_window_argb_visual yes
-own_window_argb_value 80
-own_window_hints undecorated,below,sticky,skip_taskbar,skip_pager
-
-minimum_size 300 180
-maximum_width 300
-stippled_borders 0
-update_interval 1.0
-uppercase no
-use_spacer none
-
-show_graph_scale no
-show_graph_range no
-
-use_xft yes
-xftalpha 0.1
-xftfont 'Adawita Sans Light':size=10
-color0 white
-color1 EAEAEA
-color2 FFA500
-color3 blue
-color4 green
-color5 pink
-
-
-TEXT
-${voffset -10}${color2}MEMORY ${color0}${voffset -2}${hr 1}${voffset -5}
-Used: ${memperc}%${alignr}${mem}/${memmax}${color}${voffset -5}
-${membar 5,}${voffset -7}
-${top_mem name 1} $alignr ${top_mem mem_res 1}
-${top_mem name 2} $alignr ${top_mem mem_res 2}
-${top_mem name 3} $alignr ${top_mem mem_res 3}
-${top_mem name 4} $alignr ${top_mem mem_res 4}
-${top_mem name 5} $alignr ${top_mem mem_res 5}
-${voffset -12}${stippled_hr}${voffset -5}
-${color2}SWAP ${color0}${voffset -2}${hr 1}${voffset -5}
-Used: ${swapperc}%${alignr}${swap}/${swapmax}${voffset -5}
-${swapbar 5,}
-${color2}DISK ${color0}${voffset -2}${hr 1}${voffset -5}
-${fs_used /}/${fs_size /} ${alignr}${fs_free /}${voffset -5}
-${fs_bar 5 /}${voffset -5}
+conky.text = [[
+${color2}MEMORY ${color0}${voffset -2}${hr 1}
+Used: ${mem} (${memperc}%) ---> ${memfree} Free ${alignr}${memmax}${color}${voffset -5}
+${membar 5,400}
+${color2}TASK ${goto 200}PID ${goto 300}VSIZE${alignr}SIZE ${voffset -10}${color}
+${hr 2}${voffset -5}
+${top_mem name 1}${alignc}${goto 200}${top_mem pid 1}${goto 300}${top_mem mem_vsize 1}${alignr}${top_mem mem_res 1}
+${top_mem name 2}${alignc}${goto 200}${top_mem pid 2}${goto 300}${top_mem mem_vsize 2}${alignr}${top_mem mem_res 2}
+${top_mem name 3}${alignc}${goto 200}${top_mem pid 3}${goto 300}${top_mem mem_vsize 3}${alignr}${top_mem mem_res 3}
+${top_mem name 4}${alignr}${goto 200}${top_mem pid 4}${goto 300}${top_mem mem_vsize 4}${alignr}${top_mem mem_res 4}
+${top_mem name 5}${alignr}${goto 200}${top_mem pid 5}${goto 300}${top_mem mem_vsize 5}${alignr}${top_mem mem_res 5}
+${top_mem name 6}${alignr}${goto 200}${top_mem pid 6}${goto 300}${top_mem mem_vsize 6}${alignr}${top_mem mem_res 6}
+${top_mem name 7}${alignr}${goto 200}${top_mem pid 7}${goto 300}${top_mem mem_vsize 7}${alignr}${top_mem mem_res 7}
+${top_mem name 8}${alignr}${goto 200}${top_mem pid 8}${goto 300}${top_mem mem_vsize 8}${alignr}${top_mem mem_res 8}
+${top_mem name 9}${alignr}${goto 200}${top_mem pid 9}${goto 300}${top_mem mem_vsize 9}${alignr}${top_mem mem_res 9}
+${top_mem name 10}${alignr}${goto 200}${top_mem pid 10}${goto 300}${top_mem mem_vsize 10}${alignr}${top_mem mem_res 10}
+${voffset -9}${hr 2}${color}
+${color2}SWAP ${color}${voffset -2}${hr 1}
+Used: ${swap} (${swapperc}%) ---> ${swapfree} Free${alignr}${swapmax}
+${swapbar 5,400}
+${color2}STORAGE DEVICES ${color0}${voffset -2}${hr 1}
+${execi 5 lsblk -ro NAME,SIZE,TYPE,MOUNTPOINTS | awk '$3=="disk"||$3=="rom"{print "─ "$1" ------- ("$2")"}; $3=="part"{print "     └ "$1" ----- ("$2")__"$4""}'}
+${color2}DISK-${color0}(${execi 10 awk '{printf "%.1f", $1/1000}' /sys/class/hwmon/hwmon3/temp1_input #storage}°C) ${voffset -2}${hr 1}
+Used: ${fs_used } (${fs_used_perc}%) ---> ${fs_free } Free ${alignr}${fs_size }
+${fs_bar 5,400 }
+${diskiograph_read 35,400 ffff00 ff0000 -t}${voffset -25}
+${goto 10}Read: ${diskio_read}/s
+${goto 10}Write: ${diskio_write}/s${voffset -19}
+${diskiograph_write 35,400 ffff00 ff0000 -t -y}${voffset -5}
+${stippled_hr}
+]]
