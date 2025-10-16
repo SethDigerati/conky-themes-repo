@@ -1,0 +1,121 @@
+-- **********************************************************************
+--  Conky Theme: Overload
+--  Author: Seth Digerati
+--  Description: A fork and redesign of teejeetech(teejee2008@gmail.com) original conky theme
+-- **********************************************************************
+
+conky.config = {
+    -- Basic settings
+    background = true,
+    
+    -- Position
+    alignment = 'top_right',
+    
+    -- Border settings
+    border_width = 1,
+    draw_borders = false,
+    draw_outline = false,
+    
+    -- Sampling
+    cpu_avg_samples = 10,
+    net_avg_samples = 10,
+    diskio_avg_samples = 10,
+    
+    -- Buffer and output settings
+    no_buffers = true,
+    out_to_console = false,
+    out_to_stderr = false,
+    extra_newline = false,
+    double_buffer = true,
+    draw_shades = false,
+    
+
+    
+    -- Placement
+    gap_x = 0,
+    gap_y = 10,
+    
+    -- Window properties
+    own_window = true,
+    own_window_type = 'normal',
+    own_window_transparent = true,
+    own_window_colour = '000000',
+    own_window_argb_visual = true,
+    own_window_argb_value = 0,
+    own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',
+    
+    -- Size
+    minimum_width = 400,
+    minimum_height = 180,
+    maximum_width = 400,
+    
+    -- Misc settings
+    stippled_borders = 0,
+    update_interval = 2.0,
+    uppercase = false,
+    use_spacer = 'none',
+    temperature_unit = 'celsius',
+    
+    -- Graph display
+    show_graph_scale = false,
+    show_graph_range = false,
+    draw_graph_borders = false,
+    
+    -- Text and font
+    use_xft = true,
+    xftalpha = 1,
+    font = 'FreeSans:size=10',
+    
+    -- Colors
+    default_color = 'white',
+    default_outline_color = 'white',
+    default_shade_color = 'white',
+    color0 = 'white',
+    color1 = '#EAEAEA',
+    color2 = '#FFA500',
+    color3 = 'blue',
+    color4 = 'green',
+    color5 = 'pink',
+}
+
+conky.text = [[
+${image ./assets/archlinux-logo.png -s 300x100} ${voffset 80}
+${color2}SYSTEM ${color0}${voffset -2}${hr 1}
+Date: ${time %A, %B %d}${alignr}${time %H:%M}
+OS: ${execi 60 lsb_release -d | cut -f2-}
+Kernel: ${kernel}
+Hostname: ${nodename}
+DE: ${execi 60 echo "$XDG_CURRENT_DESKTOP"} ${exec cat /etc/os-release | grep "VERSION=" | cut -d '"' -f2}${alignr}Uptime: ${uptime}
+${color2}BATTERY${color}${hr 1}
+Model: ${execi 6000 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'vendor' | awk '{$1=""; print $0;}'}.${execi 6000 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'model' | awk '{$1=""; print $0;}'}, Tech: ${execi 6000 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'technology' | awk '{$1=""; print $0;}'} (${execi 6000 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'energy-full-design' | awk '{$1=""; print $0;}'})
+${battery_bar}
+Status: ${battery} (${execi 2 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'energy:' | awk '{ print $2;}'}/${execi 2 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'energy-full:' | awk '{$1=""; print $0;}'})${alignr}Time left:${battery_time}
+${color2}CPU ${color0}(${acpitemp}°C) ${voffset -2}${hr 1}
+${cpugraph 50,400 ffff00 ff0000 -t}${voffset -9}
+${goto 30}${freq 0}MHz ${goto 130}${freq 1}MHz${goto 230}${freq 2}MHz ${goto 330}${freq 3}MHz${voffset 80}
+${voffset -85}${offset }${if_match ${cpu cpu0} > 80}${color red}${else}${color1}${endif}${cpugauge cpu0 55,95}
+${voffset -70} ${goto 105}${if_match ${cpu cpu1} > 80}${color red}${else}${color1}${endif}${cpugauge cpu1 55,95}
+${voffset -70} ${goto 205}${if_match ${cpu cpu2} > 80}${color red}${else}${color1}${endif}${cpugauge cpu2 55,95}
+${voffset -70} ${goto 305}${if_match ${cpu cpu3} > 80}${color red}${else}${color1}${endif}${cpugauge cpu3 55,95}
+${voffset -10} ${offset 35}${if_match ${cpu cpu0} > 80}${color red}${else}${color1}${endif}${cpu cpu0} %
+${voffset -15} ${offset 135}${if_match ${cpu cpu1} > 80}${color red}${else}${color1}${endif}${cpu cpu1} %
+${voffset -15} ${offset 235}${if_match ${cpu cpu2} > 80}${color red}${else}${color1}${endif}${cpu cpu2} %
+${voffset -15} ${offset 335}${if_match ${cpu cpu3} > 80}${color red}${else}${color1}${endif}${cpu cpu3} %${color1}
+${voffset -60}${goto 50}1 ${goto 150}2 ${goto 0} ${goto 250}3 ${goto 350}4
+${voffset 40}
+${cpu}% ${cpubar 5,}
+${color2}TASK ${goto 220}PID ${alignr}SIZE ${voffset -10}${color}
+${hr 2}${voffset -5}
+${top name 1}${goto 200}${top pid 1} $alignr ${top cpu 1}%
+${top name 2}${goto 200}${top pid 2} $alignr ${top cpu 2}%
+${top name 3}${goto 200}${top pid 3} $alignr ${top cpu 3}%
+${top name 4}${goto 200}${top pid 4} $alignr ${top cpu 4}%
+${top name 5}${goto 200}${top pid 5} $alignr ${top cpu 5}%
+${top name 6}${goto 200}${top pid 6} $alignr ${top cpu 6}%
+${top name 7}${goto 200}${top pid 7} $alignr ${top cpu 7}%
+${top name 8}${goto 200}${top pid 8} $alignr ${top cpu 8}%
+${top name 9}${goto 200}${top pid 9} $alignr ${top cpu 9}%
+${top name 10}${goto 200}${top pid 10}  $alignr ${top cpu 10}%
+${voffset -9}${hr 2}
+
+]]
