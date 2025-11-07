@@ -1,58 +1,83 @@
-# **********************************************************************
-#  Conky Theme: Overload
-#  Author: Seth Digerati
-#  Description: A fork and redesign of teejeetech's(teejee2008@gmail.com) original conky theme
-# **********************************************************************
+-- **********************************************************************
+--  Conky Theme: Overload lastfm
+--  Author: Seth Digerati
+--  Description: A fork and redesign of teejeetech(teejee2008@gmail.com) original conky theme
+-- **********************************************************************
 
-background yes                         # Run in background: yes, no
-double_buffer yes                      # Double buffering (reduces flicker): yes, no
-alignment middle_left
-border_width 1                         # Border width in pixels: number
-cpu_avg_samples 2                      # CPU averaging samples: number (1-8)
-default_color white                    # Default text color: color name or hex
-default_outline_color white            # Default outline color: color name or hex  
-default_shade_color white              # Default shade color: color name or hex
-draw_borders no                        # Draw borders: yes, no
-draw_graph_borders yes                 # Draw graph borders: yes, no
-draw_outline no                        # Draw text outline: yes, no
-draw_shades no                         # Draw text shades: yes, no
-gap_x 0
-gap_y 10
-net_avg_samples 2                      # Network averaging samples: number (1-8)
-no_buffers yes                         # Subtract buffers from used memory: yes, no
-out_to_console no                      # Output to console: yes, no
-out_to_stderr no                       # Output to stderr: yes, no
-extra_newline no                       # Add extra newline at end: yes, no
-own_window yes                         # Create own window: yes, no
-own_window_type normal                # Window type: normal, desktop, dock, panel, override - DESKTOP = no background
-own_window_transparent yes
-imlib_cache_size 0                    # Disable image cache globally - Options: 0 (disabled), number (cache size in bytes)
-draw_blended false
-own_window_colour 000000
-own_window_argb_visual yes
-own_window_argb_value 0
-own_window_hints undecorated,below,sticky,skip_taskbar,skip_pager  # Window hints: undecorated, below, above, sticky, skip_taskbar, skip_pager
-minimum_size 300 270
-maximum_width 300                      # Maximum window width: number
-stippled_borders 0                     # Stippled border width: number
-update_interval 1                      # Update interval in seconds: number
-uppercase no                           # Convert text to uppercase: yes, no
-use_spacer none                        # Use spacer: none, left, right
-show_graph_scale no                    # Show graph scale: yes, no
-show_graph_range no                    # Show graph range: yes, no
-use_xft yes                           # Use Xft fonts: yes, no
-xftalpha 0.1                          # Xft alpha (text transparency): 0.0-1.0
-xftfont 'Adawita Sans Light':size=10   # Xft font: 'fontname':size=number
-color0 white                          # Color 0: color name or hex
-color1 EAEAEA                         # Color 1: color name or hex
-color2 FFA300                         # Color 2: color name or hex
-color3 grey                           # Color 3: color name or hex
-color4 red                            # Color 4: color name or hex
+conky.config = {
+    -- Basic settings
+    background = true,
+    
+    -- Position
+    alignment = 'top_left',
+    
+    -- Border settings
+    border_width = 1,
+    draw_borders = false,
+    draw_outline = false,
+    
+    -- Sampling
+    cpu_avg_samples = 10,
+    net_avg_samples = 10,
+    diskio_avg_samples = 10,
+    
+    -- Buffer and output settings
+    no_buffers = true,
+    imlib_cache_size = 0,
+    out_to_console = false,
+    out_to_stderr = false,
+    extra_newline = false,
+    double_buffer = true,
+    draw_shades = false,
+    draw_blended = false,
 
-lua_load './lastfm.lua'
-lua_draw_hook_pre conky_update_lastfm
+    -- Placement
+    gap_x = 0,
+    gap_y = 300,
+    
+    -- Window properties
+    own_window = true,
+    own_window_type = 'normal',
+    own_window_transparent = true,
+    own_window_colour = '000000',
+    own_window_argb_visual = true,
+    own_window_argb_value = 0,
+    own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',
+    
+    -- Size
+    minimum_width = 400,
+    minimum_height = 180,
+    maximum_width = 400,
+    
+    -- Misc settings
+    stippled_borders = 0,
+    update_interval = 2.0,
+    uppercase = false,
+    use_spacer = 'none',
+    temperature_unit = 'celsius',
+    
+    -- Graph display
+    show_graph_scale = false,
+    show_graph_range = false,
+    draw_graph_borders = false,
 
-TEXT
+    -- Text and font
+    use_xft = true,
+    xftalpha = 0.1,
+    font = 'FreeSans:size=10',
+    
+    -- Colors
+    color0 = 'white',
+    color1 = 'EAEAEA',
+    color2 = 'FFA300',
+    color3 = 'grey',
+    color4 = 'red',
+
+  lua_load = './lastfm.lua',
+  lua_draw_hook_pre = 'conky_update_lastfm',
+}
+
+conky.text = [[
 ${color2}LAST.FM${color1} ${hr 1}
 ${voffset -5}${color2}${lua conky_nowplaying1}${color}
 ${image ./assets/cover1.png -p 0,35 -s 100x100}${voffset -20}
@@ -72,3 +97,4 @@ ${goto 90}${color2}Artist:${color1} ${lua conky_artist3}
 ${goto 90}${color2}Album:${color1} ${lua conky_album3}
 ${goto 90}${color2}Duration:${color1} ${lua conky_duration3} ${color2}Plays:${color1} ${lua conky_playcount3}
 ${voffset -5}${stippled_hr}
+]]
