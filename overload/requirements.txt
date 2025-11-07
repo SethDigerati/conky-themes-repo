@@ -13,7 +13,7 @@ file               # File type detection utility
 cronie             # Daemon that runs specified programs at scheduled times and related tools
 speedtest-cli      # Internet speed test tool
 intel-gpu-tools    # Intel GPU tools (optional, for Intel GPU monitoring)
-
+lm-sensors        # Hardware monitoring (optional, for temperature and fan speed)
 ## Lua Packages (via luarocks)
 luarocks           # Lua package manager
 # dkjson           # JSON parsing library (install via luarocks)
