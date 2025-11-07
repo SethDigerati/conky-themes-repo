@@ -63,7 +63,7 @@ conky.config = {
     show_graph_scale = false,
     show_graph_range = false,
     draw_graph_borders = false,
-    
+
     -- Text and font
     use_xft = true,
     xftalpha = 1,
