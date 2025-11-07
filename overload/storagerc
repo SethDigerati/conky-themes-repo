@@ -81,7 +81,7 @@ conky.config =
 
 conky.text = [[
 ${color2}MEMORY ${color0}${voffset -2}${hr 1}
-Used: ${mem} (${memperc}%) ---> ${memfree} Free ${alignr}${memmax}${color}${voffset -5}
+Used: ${mem} (${memperc}%) ---> ${memeasyfree} Free ${alignr}${memmax}${color}${voffset -5}
 ${membar 5,400}
 ${color2}TASK ${goto 200}PID ${goto 300}VSIZE${alignr}SIZE ${voffset -10}${color}
 ${hr 2}${voffset -5}
