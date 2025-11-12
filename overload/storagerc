@@ -30,8 +30,6 @@ conky.config =
     double_buffer = true,
     draw_shades = false,
     
-
-    
     -- Placement
     gap_x = 0,
     gap_y = 710,
@@ -64,13 +62,14 @@ conky.config =
     
     -- Text and font
     use_xft = true,
-    xftalpha = 1,
-    font = 'GE Inspira:size=9.5',
+    draw_shades = true,
+    xftalpha = 100,
+    font = 'GE Inspira:size=10',
     
     -- Colors
     default_color = 'white',
     default_outline_color = 'white',
-    default_shade_color = 'white',
+    default_shade_color = 'black',
     color0 = 'white',
     color1 = '#EAEAEA',
     color2 = '#FFE020',
@@ -104,9 +103,9 @@ ${font FreeSans:size=9}${execi 5 lsblk -ro NAME,SIZE,TYPE,MOUNTPOINTS | awk '$3=
 ${color2}DISK${color0}-(${execi 10 awk '{printf "%.1f", $1/1000}' /sys/class/hwmon/hwmon3/temp1_input #storage}°C) ${voffset -2}${hr 1}
 Used: ${fs_used } (${fs_used_perc}%) ---> ${fs_free } Free ${alignr}${fs_size }
 ${fs_bar 5,400 }
-${diskiograph_read 35,400 ffff00 ff0000 -t}${voffset -25}
+${diskiograph_read 35,400 ffff00 ff0000 -t}${voffset -15}
+${diskiograph_write 35,400 ffff00 ff0000 -t -y}${voffset -64}
 ${goto 10}Read: ${diskio_read}/s
-${goto 10}Write: ${diskio_write}/s${voffset -19}
-${diskiograph_write 35,400 ffff00 ff0000 -t -y}${voffset -5}
+${goto 10}Write: ${diskio_write}/s${voffset 20}
 ${stippled_hr}
 ]]

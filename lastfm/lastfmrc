@@ -29,11 +29,10 @@ conky.config = {
     extra_newline = false,
     double_buffer = true,
     draw_blended = false,
-    draw_outline = false,
 
     -- Placement
     gap_x = 0,
-    gap_y = 300,
+    gap_y = 310,
     
     -- Window properties
     own_window = true,
@@ -64,13 +63,12 @@ conky.config = {
 
     -- Text and font
     use_xft = true,
-    shadow = true,
+    draw_shades = true,
     xftalpha = 0.1,
-    font = 'Noto Sans CJK JP:size=9',
+    font = 'GE Inspira:size=9.5',
     
     -- Colors
     default_color = 'white',
-    shadow_color = "#000000",    -- black, 100% opacity
     default_outline_color = 'black',
     default_shade_color = 'black',
     color0 = 'white',
@@ -84,26 +82,25 @@ conky.config = {
   lua_draw_hook_pre = 'conky_update_lastfm',
 }
 
-
-
 conky.text = [[
+${font GE Inspira:size=10}
 ${color2}LAST.FM${color1} ${hr 1}
 ${voffset -5}${color2}${lua conky_nowplaying1}${color}
 ${image ./assets/cover1.png -p 0,35 -s 100x100}${voffset -20}
-${goto 110}${color2}Track:${color1} ${lua conky_track1}
-${goto 110}${color2}Artist:${color1} ${lua conky_artist1}
-${goto 110}${color2}Album:${color1} ${lua conky_album1}
-${goto 110}${color2}Duration:${color1} ${lua conky_duration1}
-${goto 110}${color2}Plays:${color1} ${lua conky_playcount1}
+${goto 110}${color2}Track:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_track1}${font}
+${goto 110}${color2}Artist:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_artist1}${font}
+${goto 110}${color2}Album:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_album1}${font}
+${goto 110}${color2}Duration:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_duration1}${font}
+${goto 110}${color2}Plays:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_playcount1}${font}
 ${voffset 10}${color2}Recent Tracks:${color}
 ${voffset -15}${stippled_hr}
-${image ./assets/cover2.png -p 0,160 -s 80x80}${goto 90}${color2}Track:${color1} ${lua conky_track2}
-${goto 90}${color2}Artist:${color1} ${lua conky_artist2}
-${goto 90}${color2}Album:${color1} ${lua conky_album2}
-${goto 90}${color2}Duration:${color1} ${lua conky_duration2} ${color2}Plays:${color1} ${lua conky_playcount2}
-${image ./assets/cover3.png -p 0,245 -s 80x80}${goto 90}${voffset 10}${color2}Track:${color1} ${lua conky_track3}
-${goto 90}${color2}Artist:${color1} ${lua conky_artist3}
-${goto 90}${color2}Album:${color1} ${lua conky_album3}
-${goto 90}${color2}Duration:${color1} ${lua conky_duration3} ${color2}Plays:${color1} ${lua conky_playcount3}
-${voffset -5}${stippled_hr}
+${image ./assets/cover2.png -p 0,160 -s 80x80}${goto 90}${color2}Track:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_track2}${font}
+${goto 90}${color2}Artist:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_artist2}${font}
+${goto 90}${color2}Album:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_album2}${font}
+${goto 90}${color2}Duration:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_duration2} ${font}${color2}Plays:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_playcount2}${font}
+${image ./assets/cover3.png -p 0,245 -s 80x80}${goto 90}${voffset 10}${color2}Track:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_track3}${font}
+${goto 90}${color2}Artist:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_artist3}${font}
+${goto 90}${color2}Album:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_album3}${font}
+${goto 90}${color2}Duration:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_duration3} ${font}${color2}Plays:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_playcount3}${font}
+${voffset -5}${stippled_hr}${font}
 ]]

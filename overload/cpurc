@@ -29,8 +29,6 @@ conky.config = {
     double_buffer = true,
     draw_shades = false,
     
-
-    
     -- Placement
     gap_x = 0,
     gap_y = 10,
@@ -63,13 +61,14 @@ conky.config = {
     
     -- Text and font
     use_xft = true,
-    xftalpha = 1,
-    font = 'GE Inspira:size=9.5',
+    draw_shades = true,
+    xftalpha = 100,
+    font = 'GE Inspira:size=10',
     
     -- Colors
     default_color = 'white',
     default_outline_color = 'white',
-    default_shade_color = 'white',
+    default_shade_color = 'black',
     color0 = 'white',
     color1 = '#EAEAEA',
     color2 = '#FFE020',
