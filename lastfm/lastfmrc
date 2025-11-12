@@ -17,9 +17,9 @@ conky.config = {
     draw_outline = false,
     
     -- Sampling
-    cpu_avg_samples = 10,
-    net_avg_samples = 10,
-    diskio_avg_samples = 10,
+    cpu_avg_samples = 5,
+    net_avg_samples = 5,
+    diskio_avg_samples = 5,
     
     -- Buffer and output settings
     no_buffers = true,
@@ -28,8 +28,8 @@ conky.config = {
     out_to_stderr = false,
     extra_newline = false,
     double_buffer = true,
-    draw_shades = false,
     draw_blended = false,
+    draw_outline = false,
 
     -- Placement
     gap_x = 0,
@@ -39,7 +39,7 @@ conky.config = {
     own_window = true,
     own_window_type = 'normal',
     own_window_transparent = true,
-    own_window_colour = '000000',
+    own_window_colour = '003B6F',
     own_window_argb_visual = true,
     own_window_argb_value = 0,
     own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',
@@ -55,6 +55,7 @@ conky.config = {
     uppercase = false,
     use_spacer = 'none',
     temperature_unit = 'celsius',
+    override_utf8_locale = true,
     
     -- Graph display
     show_graph_scale = false,
@@ -63,19 +64,27 @@ conky.config = {
 
     -- Text and font
     use_xft = true,
+    shadow = true,
     xftalpha = 0.1,
-    font = 'FreeSans:size=10',
+    font = 'Noto Sans CJK JP:size=9',
     
     -- Colors
+    default_color = 'white',
+    shadow_color = "#000000",    -- black, 100% opacity
+    default_outline_color = 'black',
+    default_shade_color = 'black',
     color0 = 'white',
-    color1 = 'EAEAEA',
-    color2 = 'FFA300',
-    color3 = 'grey',
-    color4 = 'red',
+    color1 = '#EAEAEA',
+    color2 = '#FFE020',
+    color3 = 'blue',
+    color4 = 'green',
+    color5 = 'pink',
 
   lua_load = './lastfm.lua',
   lua_draw_hook_pre = 'conky_update_lastfm',
 }
+
+
 
 conky.text = [[
 ${color2}LAST.FM${color1} ${hr 1}

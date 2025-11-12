@@ -20,9 +20,9 @@ conky.config = {
     draw_outline = false,
     
     -- Sampling
-    cpu_avg_samples = 10,
-    net_avg_samples = 10,
-    diskio_avg_samples = 10,
+    cpu_avg_samples = 5,
+    net_avg_samples = 5,
+    diskio_avg_samples = 5,
     
     -- Buffer and output settings
     no_buffers = true,
@@ -67,7 +67,7 @@ conky.config = {
     -- Text and font
     use_xft = true,
     xftalpha = 1,
-    font = 'FreeSans:size=10',
+    font = 'GE Inspira:size=9.5',
     
     -- Colors
     default_color = 'white',
@@ -75,7 +75,7 @@ conky.config = {
     default_shade_color = 'white',
     color0 = 'white',
     color1 = '#EAEAEA',
-    color2 = '#FFA500',
+    color2 = '#FFE020',
     color3 = 'blue',
     color4 = 'green',
     color5 = 'pink',
@@ -85,7 +85,7 @@ conky.text = [[
 ${color2}NETWORK(${template0})${color0}(${execi 10 awk '{printf "%.2f", $1/1000}' /sys/class/hwmon/hwmon6/temp1_input}°C) ${hr}
 Status:${alignr}${if_existing /sys/class/net/${template0}/operstate up}${color 00ff41}ONLINE${else}${color ff0000}OFFLINE${endif}$color
 SSID: ${wireless_essid ${template0}}
-Bitrate: ${wireless_bitrate ${template0}}${alignr}Signal: ${wireless_link_qual_perc ${template0}}%${wireless_link_qual ${template0}} / ${wireless_link_qual_max ${template0}}
+Bitrate: ${wireless_bitrate ${template0}}${alignr}Signal: ${wireless_link_qual_perc ${template0}}%[ ${wireless_link_qual ${template0}} / ${wireless_link_qual_max ${template0}} ]
 ISP: ${alignr}${execi 6000 curl -s ipinfo.io/org}
 Latency (192.168.1.1) :${alignr}${texeci 15 ping -c 10 192.168.1.1 | awk -F'/' 'END {print $5 " ms ± " $7}'}
 Latency (8.8.8.8) :${alignr}${texeci 15 ping -c 10 8.8.8.8 | awk -F'/' 'END {print $5 " ms ± " $7}'}

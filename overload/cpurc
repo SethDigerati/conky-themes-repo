@@ -17,9 +17,9 @@ conky.config = {
     draw_outline = false,
     
     -- Sampling
-    cpu_avg_samples = 10,
-    net_avg_samples = 10,
-    diskio_avg_samples = 10,
+    cpu_avg_samples = 5,
+    net_avg_samples = 5,
+    diskio_avg_samples = 5,
     
     -- Buffer and output settings
     no_buffers = true,
@@ -64,7 +64,7 @@ conky.config = {
     -- Text and font
     use_xft = true,
     xftalpha = 1,
-    font = 'FreeSans:size=10',
+    font = 'GE Inspira:size=9.5',
     
     -- Colors
     default_color = 'white',
@@ -72,7 +72,7 @@ conky.config = {
     default_shade_color = 'white',
     color0 = 'white',
     color1 = '#EAEAEA',
-    color2 = '#FFA500',
+    color2 = '#FFE020',
     color3 = 'blue',
     color4 = 'green',
     color5 = 'pink',
@@ -91,6 +91,7 @@ Model: ${execi 6000 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | gre
 ${battery_bar}
 Status: ${battery} (${execi 2 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'energy:' | awk '{ print $2;}'}/${execi 2 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'energy-full:' | awk '{$1=""; print $0;}'})${alignr}Time left:${battery_time}
 ${color2}CPU ${color0}(${acpitemp}°C) ${voffset -2}${hr 1}
+${cpu}% ${cpubar 5,}
 ${cpugraph 50,400 ffff00 ff0000 -t}${voffset -9}
 ${goto 30}${freq 0}MHz ${goto 130}${freq 1}MHz${goto 230}${freq 2}MHz ${goto 330}${freq 3}MHz${voffset 80}
 ${voffset -85}${offset }${if_match ${cpu cpu0} > 80}${color red}${else}${color1}${endif}${cpugauge cpu0 55,95}
@@ -102,9 +103,9 @@ ${voffset -15} ${offset 135}${if_match ${cpu cpu1} > 80}${color red}${else}${col
 ${voffset -15} ${offset 235}${if_match ${cpu cpu2} > 80}${color red}${else}${color1}${endif}${cpu cpu2} %
 ${voffset -15} ${offset 335}${if_match ${cpu cpu3} > 80}${color red}${else}${color1}${endif}${cpu cpu3} %${color1}
 ${voffset -60}${goto 50}1 ${goto 150}2 ${goto 0} ${goto 250}3 ${goto 350}4
-${voffset 40}
-${cpu}% ${cpubar 5,}
-${color2}TASK ${goto 220}PID ${alignr}SIZE ${voffset -10}${color}
+${voffset 25}
+${hr 1}${voffset -5}
+${color2}TASK ${goto 210}PID ${alignr}SIZE ${voffset -10}${color}
 ${hr 2}${voffset -5}
 ${top name 1}${goto 200}${top pid 1} $alignr ${top cpu 1}%
 ${top name 2}${goto 200}${top pid 2} $alignr ${top cpu 2}%

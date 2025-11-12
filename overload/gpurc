@@ -15,11 +15,11 @@ conky.config = {
     border_width = 1,
     draw_borders = false,
     draw_outline = false,
-    
+     
     -- Sampling
-    cpu_avg_samples = 10,
-    net_avg_samples = 10,
-    diskio_avg_samples = 10,
+    cpu_avg_samples = 5,
+    net_avg_samples = 5,
+    diskio_avg_samples = 5,
     
     -- Buffer and output settings
     no_buffers = true,
@@ -33,7 +33,7 @@ conky.config = {
     
     -- Placement
     gap_x = 0,
-    gap_y = 610,
+    gap_y = 600,
     
     -- Window properties
     own_window = true,
@@ -63,15 +63,15 @@ conky.config = {
     -- Text and font
     use_xft = true,
     xftalpha = 1,
-    font = 'FreeSans:size=10',
+    font = 'GE Inspira:size=9.5',
     
     -- Colors
     default_color = 'white',
     default_outline_color = 'white',
     default_shade_color = 'white',
     color0 = 'white',
-    color1 = '#EAEAEA',
-    color2 = '#FFA500',
+    color1 = '#FFFFFF',
+    color2 = '#FFE020',
     color3 = 'blue',
     color4 = 'green',
     color5 = 'pink',

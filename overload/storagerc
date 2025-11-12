@@ -18,9 +18,9 @@ conky.config =
     draw_outline = false,
     
     -- Sampling
-    cpu_avg_samples = 10,
-    net_avg_samples = 10,
-    diskio_avg_samples = 10,
+    cpu_avg_samples = 5,
+    net_avg_samples = 5,
+    diskio_avg_samples = 5,
     
     -- Buffer and output settings
     no_buffers = true,
@@ -34,7 +34,7 @@ conky.config =
     
     -- Placement
     gap_x = 0,
-    gap_y = 730,
+    gap_y = 710,
     
     -- Window properties
     own_window = true,
@@ -65,7 +65,7 @@ conky.config =
     -- Text and font
     use_xft = true,
     xftalpha = 1,
-    font = 'FreeSans:size=10',
+    font = 'GE Inspira:size=9.5',
     
     -- Colors
     default_color = 'white',
@@ -73,7 +73,7 @@ conky.config =
     default_shade_color = 'white',
     color0 = 'white',
     color1 = '#EAEAEA',
-    color2 = '#FFA500',
+    color2 = '#FFE020',
     color3 = 'blue',
     color4 = 'green',
     color5 = 'pink',
@@ -83,7 +83,7 @@ conky.text = [[
 ${color2}MEMORY ${color0}${voffset -2}${hr 1}
 Used: ${mem} (${memperc}%) ---> ${memeasyfree} Free ${alignr}${memmax}${color}${voffset -5}
 ${membar 5,400}
-${color2}TASK ${goto 200}PID ${goto 300}VSIZE${alignr}SIZE ${voffset -10}${color}
+${color2}TASK ${goto 210}PID ${goto 300}VSIZE${alignr}SIZE ${voffset -10}${color}
 ${hr 2}${voffset -5}
 ${top_mem name 1}${alignc}${goto 200}${top_mem pid 1}${goto 300}${top_mem mem_vsize 1}${alignr}${top_mem mem_res 1}
 ${top_mem name 2}${alignc}${goto 200}${top_mem pid 2}${goto 300}${top_mem mem_vsize 2}${alignr}${top_mem mem_res 2}
@@ -100,8 +100,8 @@ ${color2}SWAP ${color}${voffset -2}${hr 1}
 Used: ${swap} (${swapperc}%) ---> ${swapfree} Free${alignr}${swapmax}
 ${swapbar 5,400}
 ${color2}STORAGE DEVICES ${color0}${voffset -2}${hr 1}
-${execi 5 lsblk -ro NAME,SIZE,TYPE,MOUNTPOINTS | awk '$3=="disk"||$3=="rom"{print "─ "$1" ------- ("$2")"}; $3=="part"{print "     └ "$1" ----- ("$2")__"$4""}'}
-${color2}DISK-${color0}(${execi 10 awk '{printf "%.1f", $1/1000}' /sys/class/hwmon/hwmon3/temp1_input #storage}°C) ${voffset -2}${hr 1}
+${font FreeSans:size=9}${execi 5 lsblk -ro NAME,SIZE,TYPE,MOUNTPOINTS | awk '$3=="disk"||$3=="rom"{print "─ "$1" ------- ("$2")"}; $3=="part"{print "     └ "$1" ----- ("$2")__"$4""}'}${font}
+${color2}DISK${color0}-(${execi 10 awk '{printf "%.1f", $1/1000}' /sys/class/hwmon/hwmon3/temp1_input #storage}°C) ${voffset -2}${hr 1}
 Used: ${fs_used } (${fs_used_perc}%) ---> ${fs_free } Free ${alignr}${fs_size }
 ${fs_bar 5,400 }
 ${diskiograph_read 35,400 ffff00 ff0000 -t}${voffset -25}
