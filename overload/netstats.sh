@@ -9,8 +9,8 @@ LOGFILE="/tmp/netstats.log"
 
 mkdir -p "$TMPDIR"
 
-# Avoid duplicate daemons
-if pgrep -f "[n]etstats_daemon.sh" | grep -v $$ >/dev/null; then
+# Avoid duplicate daemons (match this script's name)
+if pgrep -f "[n]etstats.sh" | grep -v "$$" >/dev/null; then
     echo "[netstats] Already running." >> "$LOGFILE"
     exit 0
 fi
@@ -20,9 +20,9 @@ log() { echo "[netstats] $1" >> "$LOGFILE"; }
 update_stats() {
     log "Updating stats..."
 
-    # Ping test (10 packets)
-    PING_OUTPUT=$(/usr/bin/ping -c 10 -q "$TARGET" 2>/dev/null)
-    LOSS=$(echo "$PING_OUTPUT" | grep -oP '\d+(?=% packet loss)' | tail -n1)
+    # Ping test (10 packets) - capture output reliably and extract loss portably
+    PING_OUTPUT="$(/usr/bin/ping -c 10 -q "$TARGET" 2>/dev/null)"
+    LOSS=$(printf '%s\n' "$PING_OUTPUT" | sed -n 's/.*,\s*\([0-9][0-9]*\)% packet loss.*/\1/p' | tail -n1)
     # Removed AVG_LAT calculation
     JITTER=$(awk 'BEGIN{srand(); print rand()*5}')
 
