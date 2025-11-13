@@ -92,11 +92,11 @@ Latency (8.8.8.8) :${alignr}${texeci 15 ping -c 10 8.8.8.8 | awk -F'/' 'END {pri
 Loss: ${execpi 20 jq -r '.loss' ~/.cache/netstats/netstats.json}%${alignr}${color1}Jitter:${color0}${execpi 20 jq -r '.jitter' ~/.cache/netstats/netstats.json} ms
 Total connections: ${tcp_portmon 1 61000 count}${goto 200} Inbound: ${tcp_portmon 1 32767 count}${alignr} Outbound: ${tcp_portmon 32768 61000 count}
 ${color2}Downloaded: ${color0}${totaldown ${template0}}${alignr}${color2}Uploaded: ${color0}${totalup ${template0}}
-${downspeedgraph ${template0} 50,400 ffff00 ff0000 -t}${voffset -25}
+${downspeedgraph ${template0} 50,400 ffff00 ff0000 -t}${voffset -15}
+${upspeedgraph ${template0} 50,400 ffff00 ff0000 -t -y}${voffset -78}
 ${goto 10}Downspeed: ${color0}${downspeedf ${template0}} KiB/s
-${goto 10}Upspeed: ${color0}${upspeedf ${template0}} KiB/s${voffset -19}
-${upspeedgraph ${template0} 50,400 ffff00 ff0000 -t -y}
-${color2}Local${color0}${alignr}${addr ${template0}}
-${color2}Public${color0}${alignr}${execi 600 curl -s ipinfo.io/ip}
+${goto 10}Upspeed: ${color0}${upspeedf ${template0}} KiB/s${voffset 19}
+${color2}Local IP:${color0}${alignr}${addr ${template0}}
+${color2}Public IP:${color0}${alignr}${execi 600 curl -s ipinfo.io/ip}
 ${voffset -10}${stippled_hr}
 ]]
