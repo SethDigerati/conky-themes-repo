@@ -32,7 +32,7 @@ conky.config = {
 
     -- Placement
     gap_x = 0,
-    gap_y = 310,
+    gap_y = 320,
     
     -- Window properties
     own_window = true,
@@ -65,7 +65,7 @@ conky.config = {
     use_xft = true,
     draw_shades = true,
     xftalpha = 0.1,
-    font = 'GE Inspira:size=9.5',
+    font = 'GE Inspira:size=10',
     
     -- Colors
     default_color = 'white',
@@ -83,18 +83,17 @@ conky.config = {
 }
 
 conky.text = [[
-${font GE Inspira:size=10}
 ${color2}LAST.FM${color1} ${hr 1}
-${voffset -5}${color2}${lua conky_nowplaying1}${color}
-${image ./assets/cover1.png -p 0,35 -s 100x100}${voffset -20}
+${voffset -5}${color2}${font DejaVu Sans:size=11}${lua conky_nowplaying1}${color}${font}
+${image ./assets/cover1.png -p 0,30 -s 100x100}${voffset -10}
 ${goto 110}${color2}Track:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_track1}${font}
 ${goto 110}${color2}Artist:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_artist1}${font}
 ${goto 110}${color2}Album:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_album1}${font}
 ${goto 110}${color2}Duration:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_duration1}${font}
 ${goto 110}${color2}Plays:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_playcount1}${font}
 ${voffset 10}${color2}Recent Tracks:${color}
-${voffset -15}${stippled_hr}
-${image ./assets/cover2.png -p 0,160 -s 80x80}${goto 90}${color2}Track:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_track2}${font}
+${voffset -10}${stippled_hr}${voffset -5}
+${image ./assets/cover2.png -p 0,160 -s 80x80}${goto 90}${color2}${voffset 10}Track:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_track2}${font}
 ${goto 90}${color2}Artist:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_artist2}${font}
 ${goto 90}${color2}Album:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_album2}${font}
 ${goto 90}${color2}Duration:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_duration2} ${font}${color2}Plays:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_playcount2}${font}
