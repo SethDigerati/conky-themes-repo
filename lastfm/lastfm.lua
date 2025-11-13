@@ -33,6 +33,9 @@ for i = 1, 3 do
     _G["playcount"..i] = "-"
 end
 
+-- Add global variable for now playing status
+_G["nowplaying_status"] = "Not Playing"
+
 -- Cache for API calls to avoid repeated requests
 local cache = {}
 local cache_timeout = 30 -- seconds
@@ -220,6 +223,18 @@ function conky_update_lastfm()
     
     local all_tracks = get_tracks()
     
+    -- Check if first track is currently playing
+    if all_tracks[1] then
+        local first_track = all_tracks[1]
+        if first_track["@attr"] and first_track["@attr"]["nowplaying"] == "true" then
+            _G["nowplaying_status"] = "Now Playing"
+        else
+            _G["nowplaying_status"] = "Paused"
+        end
+    else
+        _G["nowplaying_status"] = "Not Playing"
+    end
+    
     for i = 1, 3 do
         local t = all_tracks[i]
         if t then
@@ -262,5 +277,13 @@ for i = 1, 3 do
 end
 
 function conky_nowplaying1()
-    return "♫ Now Playing"
+    local status = _G["nowplaying_status"]
+    
+    if status == "Now Playing" then
+        return "▶ Playing"
+    elseif status == "Paused" then
+        return "I I Paused"
+    else
+        return "something"  -- Return empty string when not playing
+    end
 end
