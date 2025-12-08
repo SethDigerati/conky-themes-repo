@@ -32,3 +32,5 @@ Thumbs.db
 # User-specific configurations
 *.local
 *_local.*
+
+weather/
