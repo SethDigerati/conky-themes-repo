@@ -31,7 +31,7 @@ conky.config = {
     
     -- Placement
     gap_x = 0,
-    gap_y = 600,
+    gap_y = 670,
     
     -- Window properties
     own_window = true,
