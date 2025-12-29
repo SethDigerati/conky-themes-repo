@@ -31,6 +31,7 @@ for i = 1, 3 do
     _G["album"..i] = ""
     _G["duration"..i] = "-"
     _G["playcount"..i] = "-"
+    _G["artistplays"..i] = "-"
 end
 
 -- Add global variable for now playing status
@@ -119,7 +120,7 @@ local function get_track_info_cached(artist, track)
     
     -- Check cache first
     if cache[cache_key] and (now - cache[cache_key].time) < cache_timeout then
-        return cache[cache_key].duration, cache[cache_key].playcount
+        return cache[cache_key].duration, cache[cache_key].playcount, cache[cache_key].artistplays
     end
     
     -- Get personal playcount
@@ -143,6 +144,30 @@ local function get_track_info_cached(artist, track)
             if data and data.trackscrobbles and data.trackscrobbles["@attr"] then
                 local total = tonumber(data.trackscrobbles["@attr"]["total"]) or 0
                 personal_playcount = total > 0 and tostring(total) or "-"
+            end
+        end
+    end
+    
+    -- Get artist plays (user's total scrobbles for this artist)
+    local artist_url = api.build_url(api.METHODS.ARTIST_INFO, {
+        artist = artist,
+        username = api.USERNAME
+    })
+    
+    local artist_plays = "-"
+    local temp_artist_file = DATA_DIR .. "/temp_artist.json"
+    local temp_artist_tmp = temp_artist_file .. ".tmp"
+    local artist_cmd = string.format('%s -s -S -o "%s" "%s" 2>/dev/null && mv "%s" "%s"', curl, temp_artist_tmp, artist_url, temp_artist_tmp, temp_artist_file)
+    
+    if os.execute(artist_cmd) then
+        local f = io.open(temp_artist_file, "r")
+        if f then
+            local content = f:read("*a")
+            f:close()
+            local data = json.decode(content)
+            if data and data.artist and data.artist.stats and data.artist.stats.userplaycount then
+                local plays = tonumber(data.artist.stats.userplaycount) or 0
+                artist_plays = plays > 0 and tostring(plays) or "-"
             end
         end
     end
@@ -180,10 +205,11 @@ local function get_track_info_cached(artist, track)
     cache[cache_key] = {
         duration = duration_str,
         playcount = personal_playcount,
+        artistplays = artist_plays,
         time = now
     }
     
-    return duration_str, personal_playcount
+    return duration_str, personal_playcount, artist_plays
 end
 
 local function download_image_if_needed(image_url, image_path)
@@ -221,9 +247,18 @@ local function download_image_if_needed(image_url, image_path)
 end
 
 function conky_update_lastfm()
-    if not fetch_json() then return end
+    if not fetch_json() then 
+        log("fetch_json failed, keeping existing data")
+        return 
+    end
     
     local all_tracks = get_tracks()
+    
+    -- If no tracks returned, keep existing data (don't blank everything)
+    if #all_tracks == 0 then
+        log("No tracks returned, keeping existing data")
+        return
+    end
     
     -- Prepare all data first before updating globals
     local pending_data = {}
@@ -248,7 +283,7 @@ function conky_update_lastfm()
             local album = (t.album and t.album["#text"]) or "Unknown"
             
             -- Get track info (cached)
-            local duration, playcount = get_track_info_cached(artist, track)
+            local duration, playcount, artistplays = get_track_info_cached(artist, track)
             
             pending_data[i] = {
                 artist = artist,
@@ -256,6 +291,7 @@ function conky_update_lastfm()
                 album = album,
                 duration = duration or "-",
                 playcount = playcount or "-",
+                artistplays = artistplays or "-",
                 image_path = DATA_DIR .. "/cover" .. i .. ".png"
             }
             
@@ -286,21 +322,17 @@ function conky_update_lastfm()
                 end
             end
         else
-            pending_data[i] = {
-                artist = "",
-                track = "",
-                album = "",
-                duration = "-",
-                playcount = "-"
-            }
+            -- No track at this position - keep existing data, don't overwrite with empty
+            pending_data[i] = nil
         end
     end
     
     -- PHASE 2: Update text FIRST, then images
     -- Text globals need to be ready BEFORE images appear
+    -- Only update if we have valid data
     _G["nowplaying_status"] = pending_status
     
-    -- First, update ALL text globals
+    -- First, update ALL text globals (only if we have data for that slot)
     for i = 1, 3 do
         local data = pending_data[i]
         if data then
@@ -309,6 +341,10 @@ function conky_update_lastfm()
             _G["album"..i] = data.album or ""
             _G["duration"..i] = data.duration or "-"
             _G["playcount"..i] = data.playcount or "-"
+            _G["artistplays"..i] = data.artistplays or "-"
+            log(string.format("Updated track %d: %s - %s", i, data.artist, data.track))
+        else
+            log(string.format("No new data for track %d, keeping existing", i))
         end
     end
     
@@ -332,6 +368,7 @@ for i = 1, 3 do
     _G["conky_album"..i] = function() return _G["album"..i] end
     _G["conky_duration"..i] = function() return _G["duration"..i] end
     _G["conky_playcount"..i] = function() return _G["playcount"..i] end
+    _G["conky_artistplays"..i] = function() return _G["artistplays"..i] end
 end
 
 function conky_nowplaying1()

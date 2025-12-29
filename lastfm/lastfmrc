@@ -90,16 +90,16 @@ ${goto 110}${color2}Track:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_t
 ${goto 110}${color2}Artist:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_artist1}${font}
 ${goto 110}${color2}Album:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_album1}${font}
 ${goto 110}${color2}Duration:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_duration1}${font}
-${goto 110}${color2}Plays:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_playcount1}${font}
+${goto 110}${color2}Plays:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_playcount1} ${font}${color2}Artist:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_artistplays1}${font}
 ${voffset 10}${color2}Recent Tracks:${color}
 ${voffset -10}${stippled_hr}${voffset -5}
 ${image /run/user/1000/lastfm/cover2.png -p 0,160 -s 80x80}${goto 90}${color2}${voffset 10}Track:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_track2}${font}
 ${goto 90}${color2}Artist:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_artist2}${font}
 ${goto 90}${color2}Album:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_album2}${font}
-${goto 90}${color2}Duration:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_duration2} ${font}${color2}Plays:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_playcount2}${font}
+${goto 90}${color2}Duration:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_duration2} ${font}${color2}Plays:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_playcount2} ${font}${color2}Artist:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_artistplays2}${font}
 ${image /run/user/1000/lastfm/cover3.png -p 0,245 -s 80x80}${goto 90}${voffset 10}${color2}Track:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_track3}${font}
 ${goto 90}${color2}Artist:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_artist3}${font}
 ${goto 90}${color2}Album:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_album3}${font}
-${goto 90}${color2}Duration:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_duration3} ${font}${color2}Plays:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_playcount3}${font}
+${goto 90}${color2}Duration:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_duration3} ${font}${color2}Plays:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_playcount3} ${font}${color2}Artist:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_artistplays3}${font}
 ${voffset -5}${stippled_hr}${font}
 ]]
