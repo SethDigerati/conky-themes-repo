@@ -1,12 +1,25 @@
-#!/usr/bin/env lua
--- Simple background daemon for Conky network stats (Lua)
--- Saves results in $XDG_RUNTIME_DIR/netstats/netstats.json
+-- Network stats Lua module for Conky
+-- Fetches and caches data in $XDG_RUNTIME_DIR/netstats/
 
-local TARGET = "1.1.1.1"
 local XDG_RUNTIME_DIR = os.getenv("XDG_RUNTIME_DIR") or "/tmp"
 local TMPDIR = XDG_RUNTIME_DIR .. "/netstats"
 local TMPFILE = TMPDIR .. "/netstats.json"
-local LOGFILE = "/tmp/netstats.log"
+local TMPFILE_TMP = TMPFILE .. ".tmp"
+local CURL = "/usr/bin/curl"
+
+local PING_TARGET = "1.1.1.1"
+local LATENCY_TARGET = "8.8.8.8"
+
+-- Update intervals (seconds)
+local PING_INTERVAL = 15
+local IPINFO_INTERVAL = 600
+
+-- Timestamps for throttling
+local last_ping_time = 0
+local last_ipinfo_time = 0
+
+-- Create cache dir
+os.execute('mkdir -p "' .. TMPDIR .. '" 2>/dev/null')
 
 local function run(cmd)
     local f = io.popen(cmd)
@@ -16,82 +29,151 @@ local function run(cmd)
     return s
 end
 
-local function log(msg)
-    local f = io.open(LOGFILE, "a")
+local function escape_json(str)
+    if not str then return "" end
+    return str:gsub('\\', '\\\\'):gsub('"', '\\"'):gsub('\n', '\\n'):gsub('\r', '\\r'):gsub('\t', '\\t')
+end
+
+-- Cached display data
+local display_data = {
+    loss = "0",
+    jitter = "0.00",
+    latency = "N/A",
+    isp = "N/A",
+    timezone = "N/A",
+    public_ip = "N/A"
+}
+
+local function write_json()
+    local f = io.open(TMPFILE_TMP, "w")
     if f then
-        f:write(string.format("[netstats] %s %s\n", os.date("%F %T"), msg))
+        f:write('{\n')
+        f:write(string.format('  "loss": "%s",\n', escape_json(display_data.loss)))
+        f:write(string.format('  "jitter": "%s",\n', escape_json(display_data.jitter)))
+        f:write(string.format('  "latency": "%s",\n', escape_json(display_data.latency)))
+        f:write(string.format('  "isp": "%s",\n', escape_json(display_data.isp)))
+        f:write(string.format('  "timezone": "%s",\n', escape_json(display_data.timezone)))
+        f:write(string.format('  "public_ip": "%s",\n', escape_json(display_data.public_ip)))
+        f:write(string.format('  "updated": "%s"\n', os.date("%Y-%m-%d %H:%M:%S")))
+        f:write('}\n')
         f:close()
+        os.execute('mv "' .. TMPFILE_TMP .. '" "' .. TMPFILE .. '"')
     end
 end
 
-local function ensure_file_exists(filepath)
-    local f = io.open(filepath, "r")
-    if f then
-        f:close()
-        return true
-    else
-        -- Create empty JSON with default values
-        f = io.open(filepath, "w")
-        if f then
-            f:write('{"jitter": 0.000, "loss": 0}\n')
-            f:close()
-            return true
-        end
-        return false
+local function read_cached_json()
+    local f = io.open(TMPFILE, "r")
+    if not f then return false end
+    local content = f:read("*a")
+    f:close()
+    
+    if not content or content == "" then return false end
+    
+    display_data.loss = content:match('"loss":%s*"([^"]*)"') or display_data.loss
+    display_data.jitter = content:match('"jitter":%s*"([^"]*)"') or display_data.jitter
+    display_data.latency = content:match('"latency":%s*"([^"]*)"') or display_data.latency
+    display_data.isp = content:match('"isp":%s*"([^"]*)"') or display_data.isp
+    display_data.timezone = content:match('"timezone":%s*"([^"]*)"') or display_data.timezone
+    display_data.public_ip = content:match('"public_ip":%s*"([^"]*)"') or display_data.public_ip
+    return true
+end
+
+local function fetch_ipinfo()
+    -- Get ISP/org
+    local isp = run(CURL .. ' -s --max-time 5 ipinfo.io/org 2>/dev/null')
+    isp = isp:gsub("^%s+", ""):gsub("%s+$", ""):gsub("\n", "")
+    -- Remove AS number prefix (e.g., "AS33771 Safaricom Limited" -> "Safaricom Limited")
+    isp = isp:gsub("^[Aa][Ss]%d+%s+", "")
+    isp = isp:gsub("^%u+%d+%s+", "")
+    if isp and isp ~= "" then
+        display_data.isp = isp
+    end
+    
+    -- Get timezone
+    local timezone = run(CURL .. ' -s --max-time 5 ipinfo.io/timezone 2>/dev/null')
+    timezone = timezone:gsub("^%s+", ""):gsub("%s+$", ""):gsub("\n", "")
+    if timezone and timezone ~= "" then
+        display_data.timezone = timezone
+    end
+    
+    -- Get public IP
+    local public_ip = run(CURL .. ' -s --max-time 5 ipinfo.io/ip 2>/dev/null')
+    public_ip = public_ip:gsub("^%s+", ""):gsub("%s+$", ""):gsub("\n", "")
+    if public_ip and public_ip ~= "" then
+        display_data.public_ip = public_ip
     end
 end
 
--- ensure cache dir exists
-os.execute('mkdir -p "' .. TMPDIR .. '" 2>/dev/null')
-
--- ensure JSON file exists
-ensure_file_exists(TMPFILE)
-
--- avoid duplicate daemons (count matching "netstats" processes)
-do
-    local pids = run('pgrep -f "netstats" 2>/dev/null')
-    local count = 0
-    for _ in string.gmatch(pids, "%S+") do count = count + 1 end
-    if count > 1 then
-        log("Already running.")
-        os.exit(0)
-    end
-end
-
-math.randomseed(os.time() + (tonumber(run("echo $$")) or 0))
-
-local function update_stats()
-    log("Updating stats...")
-    -- run ping (10 packets) and capture output
-    local ping_cmd = '/usr/bin/ping -c 10 -q "' .. TARGET .. '" 2>/dev/null'
-    local ping_output = run(ping_cmd)
-
-    -- extract packet loss (percentage)
+local function fetch_ping_stats()
+    -- Ping for loss and jitter (to 1.1.1.1)
+    local ping_output = run('/usr/bin/ping -c 3 -q "' .. PING_TARGET .. '" 2>/dev/null')
+    
+    -- Extract packet loss
     local loss = tonumber(string.match(ping_output or "", "([0-9]+)%% packet loss")) or 0
-
-    -- jitter: random 0..5 (replicates original awk rand()*5)
-    local jitter = math.random() * 5
-
-    -- ensure file exists before writing
-    ensure_file_exists(TMPFILE)
-
-    -- write JSON
-    local f = io.open(TMPFILE, "w")
-    if f then
-        f:write(string.format('{"jitter": %.3f, "loss": %d}\n', jitter, loss))
-        f:close()
+    display_data.loss = tostring(loss)
+    
+    -- Extract jitter (mdev from rtt line)
+    local mdev = string.match(ping_output or "", "rtt [^=]+= [^/]+/[^/]+/[^/]+/([0-9.]+)")
+    display_data.jitter = string.format("%.2f", tonumber(mdev) or 0)
+    
+    -- Ping for latency (to 8.8.8.8)
+    local latency_output = run('/usr/bin/ping -c 5 "' .. LATENCY_TARGET .. '" 2>/dev/null')
+    
+    -- Extract avg and mdev from rtt line
+    local avg = string.match(latency_output or "", "rtt [^=]+= [^/]+/([^/]+)/")
+    local lat_mdev = string.match(latency_output or "", "rtt [^=]+= [^/]+/[^/]+/[^/]+/([0-9.]+)")
+    
+    if avg then
+        display_data.latency = avg .. " ms ± " .. (lat_mdev or "0") .. " ms"
     else
-        log("Failed to write " .. TMPFILE)
+        display_data.latency = "N/A"
     end
-
-    -- log current stats
-    local stats = run('cat "' .. TMPFILE .. '" 2>/dev/null')
-    log("Stats updated: " .. (stats:gsub("\n", "") or ""))
 end
 
--- main loop
-log("Daemon started at " .. os.date("%c"))
-while true do
-    update_stats()
-    os.execute("sleep 300")
+-- Called by Conky draw hook
+function conky_update_network()
+    local now = os.time()
+    
+    -- Load cached data on first run
+    if last_ping_time == 0 then
+        read_cached_json()
+    end
+    
+    -- Fetch ipinfo if interval elapsed
+    if (now - last_ipinfo_time) >= IPINFO_INTERVAL then
+        fetch_ipinfo()
+        last_ipinfo_time = now
+        write_json()
+    end
+    
+    -- Fetch ping stats if interval elapsed
+    if (now - last_ping_time) >= PING_INTERVAL then
+        fetch_ping_stats()
+        last_ping_time = now
+        write_json()
+    end
+end
+
+function conky_loss()
+    return display_data.loss
+end
+
+function conky_jitter()
+    return display_data.jitter
+end
+
+function conky_latency()
+    return display_data.latency
+end
+
+function conky_isp()
+    return display_data.isp
+end
+
+function conky_timezone()
+    return display_data.timezone
+end
+
+function conky_public_ip()
+    return display_data.public_ip
 end
