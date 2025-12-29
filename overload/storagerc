@@ -105,7 +105,7 @@ Used: ${fs_used } (${fs_used_perc}%) ---> ${fs_free } Free ${alignr}${fs_size }
 ${fs_bar 5,400 }
 ${diskiograph_read 35,400 ffff00 ff0000 -t}${voffset -15}
 ${diskiograph_write 35,400 ffff00 ff0000 -t -y}${voffset -64}
-${goto 10}Read: ${diskio_read}/s
-${goto 10}Write: ${diskio_write}/s${voffset 20}
+${goto 10}Read: ${color2}${diskio_read}${color0}/s
+${goto 10}Write: ${color2}${diskio_write}${color0}/s${voffset 20}
 ${stippled_hr}
 ]]
