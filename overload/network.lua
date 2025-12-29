@@ -1,10 +1,10 @@
 #!/usr/bin/env lua
 -- Simple background daemon for Conky network stats (Lua)
--- Saves results in ~/.cache/netstats/netstats.json
+-- Saves results in $XDG_RUNTIME_DIR/netstats/netstats.json
 
 local TARGET = "1.1.1.1"
-local HOME = os.getenv("HOME") or "/tmp"
-local TMPDIR = HOME .. "/.cache/netstats"
+local XDG_RUNTIME_DIR = os.getenv("XDG_RUNTIME_DIR") or "/tmp"
+local TMPDIR = XDG_RUNTIME_DIR .. "/netstats"
 local TMPFILE = TMPDIR .. "/netstats.json"
 local LOGFILE = "/tmp/netstats.log"
 
