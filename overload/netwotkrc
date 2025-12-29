@@ -80,25 +80,26 @@ conky.config = {
     color4 = 'green',
     color5 = 'pink',
 
-    lua_load = './network.lua',
+    lua_load = '/home/digerati/.conky/conky-themes-repo/overload/network.lua',
+    lua_draw_hook_post = 'conky_update_network',
 }
 
 conky.text = [[
 ${color2}NETWORK(${template0})${color0}(${execi 10 awk '{printf "%.2f", $1/1000}' /sys/class/hwmon/hwmon6/temp1_input}°C) ${hr}
 Status:${alignr}${if_existing /sys/class/net/${template0}/operstate up}${color 00ff41}ONLINE${else}${color ff0000}OFFLINE${endif}$color
-SSID: ${wireless_essid ${template0}}
+SSID:${alignr}${wireless_essid ${template0}}
 Bitrate: ${wireless_bitrate ${template0}}${alignr}Signal: ${wireless_link_qual_perc ${template0}}%[ ${wireless_link_qual ${template0}} / ${wireless_link_qual_max ${template0}} ]
-ISP: ${alignr}${execi 6000 curl -s ipinfo.io/org}
-Latency (192.168.1.1) :${alignr}${texeci 15 ping -c 10 192.168.1.1 | awk -F'/' 'END {print $5 " ms ± " $7}'}
-Latency (8.8.8.8) :${alignr}${texeci 15 ping -c 10 8.8.8.8 | awk -F'/' 'END {print $5 " ms ± " $7}'}
-Loss: ${execpi 20 jq -r '.loss' ~/.cache/netstats/netstats.json}%${alignr}${color1}Jitter:${color0}${execpi 20 jq -r '.jitter' ~/.cache/netstats/netstats.json} ms
+ISP: ${alignr}${lua conky_isp}
+Latency (8.8.8.8) :${alignr}${lua conky_latency}
+Loss: ${lua conky_loss}%${alignr}${color1}Jitter:${color0}${lua conky_jitter} ms
 Total connections: ${tcp_portmon 1 61000 count}${goto 200} Inbound: ${tcp_portmon 1 32767 count}${alignr} Outbound: ${tcp_portmon 32768 61000 count}
 ${color2}Downloaded: ${color0}${totaldown ${template0}}${alignr}${color2}Uploaded: ${color0}${totalup ${template0}}
 ${downspeedgraph ${template0} 50,400 ffff00 ff0000 -t}${voffset -15}
 ${upspeedgraph ${template0} 50,400 ffff00 ff0000 -t -y}${voffset -78}
-${goto 10}Downspeed: ${color0}${downspeedf ${template0}} KiB/s
-${goto 10}Upspeed: ${color0}${upspeedf ${template0}} KiB/s${voffset 19}
+${goto 10}Downspeed: ${color2}${downspeedf ${template0}}${color0} KiB/s
+${goto 10}Upspeed: ${color2}${upspeedf ${template0}}${color0} KiB/s${voffset 19}
+${color2}Timezone:${color0}${alignr}${lua conky_timezone}
 ${color2}Local IP:${color0}${alignr}${addr ${template0}}
-${color2}Public IP:${color0}${alignr}${execi 600 curl -s ipinfo.io/ip}
+${color2}Public IP:${color0}${alignr}${lua conky_public_ip}
 ${voffset -10}${stippled_hr}
 ]]
