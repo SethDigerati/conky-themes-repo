@@ -11,8 +11,38 @@ A sleek, modern Conky theme for system monitoring with CPU, memory, network, and
 - **Network Statistics** - Real-time network upload/download speeds
 - **Process Information** - Top processes by CPU and memory usage
 - **NVIDIA GPU Support** - GPU temperature and usage (if available)
+- **Weather Widget** - Real-time weather with 6-day forecast
 - **Clean Modern Design** - Minimalist interface with customizable colors
 - **Multiple Panel Options** - Separate panels for different system components
+
+## 🌤️ Weather Widget
+
+The weather widget uses OpenWeatherMap API to display:
+
+- **Current Weather** - Temperature, description, humidity, pressure, wind
+- **6-Day Forecast** - Daily weather predictions with temp, humidity, precipitation
+- **Moon Phase** - Current lunar phase with emoji icon
+- **Auto-Location** - Automatically detects your location via IP
+
+### Weather Setup
+
+1. **Get an API key** from [OpenWeatherMap](https://openweathermap.org/api) (free tier)
+
+2. **Configure the API key:**
+   ```bash
+   cd ~/.conky/conky-themes-repo/overload
+   cp weather_api_config.lua.template weather_api_config.lua
+   # Edit weather_api_config.lua and add your API key
+   ```
+
+3. **Run the weather widget:**
+   ```bash
+   conky -c ~/.conky/conky-themes-repo/overload/weather.conf
+   ```
+
+### Weather Icons
+
+The widget uses MET Norway weather icons stored in `assets/icons/`. Icons are automatically selected based on weather conditions.
 
 ## 📸 Screenshot
 
@@ -71,14 +101,22 @@ ${cpu cpu1} ${cpu cpu2} ${cpu cpu3} ${cpu cpu4}  # 4-core example
 
 ```
 overload/
-├── conkyrc              # Main Conky configuration
-├── dependencies.txt     # Required packages
-├── install.sh          # Installation script
-├── source.txt          # Theme source information
-├── LICENSE             # License file
+├── cpurc                           # CPU monitor configuration
+├── gpurc                           # GPU monitor configuration
+├── storagerc                       # Storage monitor configuration
+├── netwotkrc                       # Network monitor configuration
+├── weather.conf                    # Weather widget configuration
+├── weather.lua                     # Weather widget Lua script
+├── weather_api_config.lua.template # API config template
+├── network.lua                     # Network Lua script
+├── install.sh                      # Installation script
+├── requirements.txt                # Required packages
+├── source.txt                      # Theme source information
+├── LICENSE                         # License file
+├── README.md                       # This file
 └── assets/
-    ├── archlinux-logo.png    # Logo asset
-    └── overload_example.png  # Theme screenshot
+    ├── icons/                      # Weather icons (MET Norway)
+    └── archlinux-logo.png          # Logo asset
 ```
 
 ## 🔧 Technical Details

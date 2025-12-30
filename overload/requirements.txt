@@ -1,32 +1,31 @@
-# Conky Last.fm Panel Dependencies
+# Overload Conky Theme Dependencies
 
-## Arch Linux Packages (Official Repos)
-conky              # Conky system monitor
+## System Packages (Arch Linux)
+conky              # Conky system monitor with Lua support
 lua                # Lua interpreter
-curl               # For API requests
-cairo              # Cairo graphics library
-lua-lgi            # Lua GObject Introspection (for Cairo bindings)
-imagemagick        # Image manipulation (convert command)
-imlib2             # Image loading library
+curl               # For API requests (weather, network)
+imlib2             # Image loading library for icons
+
+## Optional Packages
 jq                 # JSON processor for debugging
-file               # File type detection utility
-cronie             # Daemon that runs specified programs at scheduled times and related tools
+lm-sensors         # Hardware monitoring (temperature, fan speed)
+intel-gpu-tools    # Intel GPU monitoring (optional)
 speedtest-cli      # Internet speed test tool
-intel-gpu-tools    # Intel GPU tools (optional, for Intel GPU monitoring)
-lm-sensors        # Hardware monitoring (optional, for temperature and fan speed)
-## Lua Packages (via luarocks)
-luarocks           # Lua package manager
-# dkjson           # JSON parsing library (install via luarocks)
 
-## AUR Packages (Optional - install with yay/paru)
-# lua-cairo        # Alternative Lua Cairo bindings
-# lua-json         # Alternative JSON library
+## Fonts (for weather widget)
+ttf-dejavu         # DejaVu fonts (wind direction arrows)
+noto-fonts-emoji   # Noto Color Emoji (moon phase icons)
 
-## Installation Commands:
-# pacman -S conky lua curl cairo lua-lgi imagemagick imlib2 jq file luarocks
-# luarocks install dkjson
+## Installation Commands (Arch Linux):
+# pacman -S conky lua curl imlib2 ttf-dejavu noto-fonts-emoji
 
-## Installation Commands:
-# sudo apt update
+## Installation Commands (Ubuntu/Debian):
+# sudo apt install conky-all lua5.3 curl libimlib2 fonts-dejavu fonts-noto-color-emoji
+
+## Weather Widget Setup:
+# 1. Copy weather_api_config.lua.template to weather_api_config.lua
+# 2. Get a free API key from https://openweathermap.org/api
+# 3. Replace YOUR_API_KEY_HERE with your actual API key
+# 4. Run: conky -c ~/.conky/conky-themes-repo/overload/weather.conf
 # sudo apt install -y conky-all lua5.3 liblua5.3-dev libcairo2-dev libimlib2-dev curl imagemagick luarocks libgd-dev libjpeg-dev libpng-dev
 # sudo luarocks install dkjson
