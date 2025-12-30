@@ -158,6 +158,18 @@ local function exec_command(cmd)
     return result
 end
 
+-- Check for internet connectivity
+local function check_internet()
+    -- Try to reach a reliable endpoint with short timeout
+    local result = exec_command("curl -s --max-time 3 -o /dev/null -w '%{http_code}' http://ip-api.com/json/ 2>/dev/null")
+    if result and result:match("200") then
+        return true
+    end
+    -- Fallback: try ping
+    local ping_result = os.execute("ping -c 1 -W 2 1.1.1.1 >/dev/null 2>&1")
+    return ping_result == 0 or ping_result == true
+end
+
 -- Determine if it's day or night based on icon code suffix or time
 local function is_daytime(icon_code)
     if icon_code and icon_code:sub(-1) == "n" then
@@ -440,6 +452,11 @@ function conky_update_weather()
     local current_time = os.time()
     if current_time - weather_data.last_update < config.UPDATE_INTERVAL then
         return ""
+    end
+    
+    -- Check for internet connectivity first
+    if not check_internet() then
+        return ""  -- No internet, skip update but keep existing data
     end
     
     local lat, lon = get_location()

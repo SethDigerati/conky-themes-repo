@@ -17,6 +17,22 @@ local function log(message)
     end
 end
 
+-- Check for internet connectivity
+local function check_internet()
+    -- Try to reach a reliable endpoint with short timeout
+    local handle = io.popen("curl -s --max-time 3 -o /dev/null -w '%{http_code}' http://ip-api.com/json/ 2>/dev/null")
+    if handle then
+        local result = handle:read("*a")
+        handle:close()
+        if result and result:match("200") then
+            return true
+        end
+    end
+    -- Fallback: try ping
+    local ping_result = os.execute("ping -c 1 -W 2 1.1.1.1 >/dev/null 2>&1")
+    return ping_result == 0 or ping_result == true
+end
+
 -- Create assets dir
 local mkdir_result = os.execute("mkdir -p " .. DATA_DIR)
 if not mkdir_result then
@@ -247,6 +263,12 @@ local function download_image_if_needed(image_url, image_path)
 end
 
 function conky_update_lastfm()
+    -- Check for internet connectivity first
+    if not check_internet() then
+        log("No internet connection, skipping update")
+        return
+    end
+    
     if not fetch_json() then 
         log("fetch_json failed, keeping existing data")
         return 
@@ -275,6 +297,9 @@ function conky_update_lastfm()
     end
     
     -- PHASE 1: Parse all text data and download images to staging
+    -- Small delay to let the API refresh data before fetching images
+    os.execute("sleep 0.5")
+    
     for i = 1, 3 do
         local t = all_tracks[i]
         if t then
