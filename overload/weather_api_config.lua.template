@@ -1,0 +1,45 @@
+-- OpenWeatherMap API Configuration Template
+-- Copy this file to weather_api_config.lua and add your API key
+-- Get your free API key at: https://openweathermap.org/api
+
+local weather_api_config = {}
+
+-- OpenWeatherMap API credentials
+-- Replace YOUR_API_KEY_HERE with your actual API key
+weather_api_config.API_KEY = "YOUR_API_KEY_HERE"
+weather_api_config.NAME = "Default"
+
+-- API endpoints
+weather_api_config.BASE_URL = "https://api.openweathermap.org/data/2.5/"
+weather_api_config.ONECALL_URL = "https://api.openweathermap.org/data/3.0/onecall"
+weather_api_config.GEO_URL = "http://ip-api.com/json/?fields=lat,lon,city,country"
+
+-- Units (metric = Celsius, imperial = Fahrenheit)
+weather_api_config.UNITS = "metric"
+
+-- Cache settings
+weather_api_config.CACHE_DIR = os.getenv("HOME") .. "/.cache"
+weather_api_config.CACHE_FILE = weather_api_config.CACHE_DIR .. "/weather2.txt"
+weather_api_config.FORECAST_CACHE = weather_api_config.CACHE_DIR .. "/weather_forecast.txt"
+
+-- Update interval in seconds (10 minutes)
+weather_api_config.UPDATE_INTERVAL = 600
+
+-- Helper function to build API URLs
+function weather_api_config.build_current_url(lat, lon)
+    return weather_api_config.BASE_URL .. "weather?lat=" .. lat .. "&lon=" .. lon .. 
+           "&appid=" .. weather_api_config.API_KEY .. "&units=" .. weather_api_config.UNITS
+end
+
+function weather_api_config.build_forecast_url(lat, lon)
+    return weather_api_config.BASE_URL .. "forecast?lat=" .. lat .. "&lon=" .. lon .. 
+           "&appid=" .. weather_api_config.API_KEY .. "&units=" .. weather_api_config.UNITS
+end
+
+-- OneCall API for comprehensive data (current, forecast, moon phases)
+function weather_api_config.build_onecall_url(lat, lon)
+    return "https://api.openweathermap.org/data/2.5/onecall?lat=" .. lat .. "&lon=" .. lon .. 
+           "&exclude=minutely,alerts&appid=" .. weather_api_config.API_KEY .. "&units=" .. weather_api_config.UNITS
+end
+
+return weather_api_config

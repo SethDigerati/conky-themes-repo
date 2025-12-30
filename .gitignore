@@ -1,5 +1,6 @@
 # User-specific API configurations
 lastfm/api_config.lua
+overload/weather_api_config.lua
 
 # Generated assets and cache files
 lastfm/assets/cover*.png
