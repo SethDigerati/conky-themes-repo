@@ -502,6 +502,12 @@ function conky_main()
 end
 
 -- ============ GETTER FUNCTIONS ============
+-- Helper function to capitalize first letter of each word
+local function title_case(str)
+    if not str or str == "N/A" then return str end
+    return (str:gsub("(%a)([%w_']*)", function(first, rest) return first:upper() .. rest:lower() end))
+end
+
 function conky_moon_phase() return weather_data.moon.icon .. " " .. weather_data.moon.name end
 function conky_moon_icon() return weather_data.moon.icon end
 function conky_moon_name() return weather_data.moon.name end
@@ -538,7 +544,7 @@ local function get_hourly_field(index, field)
 end
 
 function conky_forecast_day_1() return get_hourly_field(1, "time") end
-function conky_forecast_weather_1() return get_hourly_field(1, "description") end
+function conky_forecast_weather_1() return title_case(get_hourly_field(1, "description")) end
 function conky_forecast_temp_1() return get_hourly_field(1, "temp") end
 function conky_forecast_humidity_1() return get_hourly_field(1, "humidity") end
 function conky_forecast_visibility_1() return get_hourly_field(1, "visibility_km") end
@@ -553,7 +559,7 @@ local function get_daily_field(day, field)
 end
 
 function conky_forecast_day_2() return get_daily_field(1, "date") end
-function conky_forecast_weather_2() return get_daily_field(1, "description") end
+function conky_forecast_weather_2() return title_case(get_daily_field(1, "description")) end
 function conky_forecast_temp_2() return get_daily_field(1, "temp") end
 function conky_forecast_humidity_2() return get_daily_field(1, "humidity") end
 function conky_forecast_visibility_2() return get_daily_field(1, "visibility_km") end
@@ -562,7 +568,7 @@ function conky_forecast_pop_2() return get_daily_field(1, "pop") end
 function conky_forecast_icon_2() return get_daily_field(1, "icon_path") end
 
 function conky_forecast_day_3() return get_daily_field(2, "date") end
-function conky_forecast_weather_3() return get_daily_field(2, "description") end
+function conky_forecast_weather_3() return title_case(get_daily_field(2, "description")) end
 function conky_forecast_temp_3() return get_daily_field(2, "temp") end
 function conky_forecast_humidity_3() return get_daily_field(2, "humidity") end
 function conky_forecast_visibility_3() return get_daily_field(2, "visibility_km") end
@@ -571,7 +577,7 @@ function conky_forecast_pop_3() return get_daily_field(2, "pop") end
 function conky_forecast_icon_3() return get_daily_field(2, "icon_path") end
 
 function conky_forecast_day_4() return get_daily_field(3, "date") end
-function conky_forecast_weather_4() return get_daily_field(3, "description") end
+function conky_forecast_weather_4() return title_case(get_daily_field(3, "description")) end
 function conky_forecast_temp_4() return get_daily_field(3, "temp") end
 function conky_forecast_humidity_4() return get_daily_field(3, "humidity") end
 function conky_forecast_visibility_4() return get_daily_field(3, "visibility_km") end
@@ -580,7 +586,7 @@ function conky_forecast_pop_4() return get_daily_field(3, "pop") end
 function conky_forecast_icon_4() return get_daily_field(3, "icon_path") end
 
 function conky_forecast_day_5() return get_daily_field(4, "date") end
-function conky_forecast_weather_5() return get_daily_field(4, "description") end
+function conky_forecast_weather_5() return title_case(get_daily_field(4, "description")) end
 function conky_forecast_temp_5() return get_daily_field(4, "temp") end
 function conky_forecast_humidity_5() return get_daily_field(4, "humidity") end
 function conky_forecast_visibility_5() return get_daily_field(4, "visibility_km") end
@@ -589,7 +595,7 @@ function conky_forecast_pop_5() return get_daily_field(4, "pop") end
 function conky_forecast_icon_5() return get_daily_field(4, "icon_path") end
 
 function conky_forecast_day_6() return get_daily_field(5, "date") end
-function conky_forecast_weather_6() return get_daily_field(5, "description") end
+function conky_forecast_weather_6() return title_case(get_daily_field(5, "description")) end
 function conky_forecast_temp_6() return get_daily_field(5, "temp") end
 function conky_forecast_humidity_6() return get_daily_field(5, "humidity") end
 function conky_forecast_visibility_6() return get_daily_field(5, "visibility_km") end
@@ -598,7 +604,7 @@ function conky_forecast_pop_6() return get_daily_field(5, "pop") end
 function conky_forecast_icon_6() return get_daily_field(5, "icon_path") end
 
 function conky_forecast_day_7() return get_daily_field(6, "date") end
-function conky_forecast_weather_7() return get_daily_field(6, "description") end
+function conky_forecast_weather_7() return title_case(get_daily_field(6, "description")) end
 function conky_forecast_temp_7() return get_daily_field(6, "temp") end
 function conky_forecast_humidity_7() return get_daily_field(6, "humidity") end
 function conky_forecast_visibility_7() return get_daily_field(6, "visibility_km") end
@@ -607,7 +613,7 @@ function conky_forecast_pop_7() return get_daily_field(6, "pop") end
 function conky_forecast_icon_7() return get_daily_field(6, "icon_path") end
 
 function conky_forecast_day_8() return get_daily_field(7, "date") end
-function conky_forecast_weather_8() return get_daily_field(7, "description") end
+function conky_forecast_weather_8() return title_case(get_daily_field(7, "description")) end
 function conky_forecast_temp_8() return get_daily_field(7, "temp") end
 function conky_forecast_humidity_8() return get_daily_field(7, "humidity") end
 function conky_forecast_visibility_8() return get_daily_field(7, "visibility_km") end
