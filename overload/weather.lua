@@ -143,10 +143,10 @@ local moon_phases = {
 
 -- Wind direction arrows
 local wind_arrows = {
-    ["N"] = "↑", ["NNE"] = "↗", ["NE"] = "↗", ["ENE"] = "↗",
-    ["E"] = "→", ["ESE"] = "↘", ["SE"] = "↘", ["SSE"] = "↘",
-    ["S"] = "↓", ["SSW"] = "↙", ["SW"] = "↙", ["WSW"] = "↙",
-    ["W"] = "←", ["WNW"] = "↖", ["NW"] = "↖", ["NNW"] = "↖"
+    ["N"] = "↓", ["NNE"] = "↙", ["NE"] = "↙", ["ENE"] = "↙",
+    ["E"] = "←", ["ESE"] = "↖", ["SE"] = "↖", ["SSE"] = "↖",
+    ["S"] = "↑", ["SSW"] = "↗", ["SW"] = "↗", ["WSW"] = "↗",
+    ["W"] = "→", ["WNW"] = "↘", ["NW"] = "↘", ["NNW"] = "↘"
 }
 
 -- Helper: execute shell command
@@ -534,9 +534,12 @@ function conky_get_maxtemp() return weather_data.current.temp_max end
 function conky_get_humidity() return weather_data.current.humidity end
 function conky_get_pressure() return weather_data.current.pressure end
 function conky_get_precipitation() return weather_data.current.precipitation end
-function conky_get_wind() return weather_data.current.wind_speed end
+function conky_get_wind()
+    local speed = tonumber(weather_data.current.wind_speed) or 0
+    return string.format("%.1f", speed * 3.6)  -- Convert m/s to km/h
+end
 function conky_get_wind_dir() return weather_data.current.wind_dir end
-function conky_get_wind_dir_icon() return " " .. (wind_arrows[weather_data.current.wind_dir] or "") end
+function conky_get_wind_dir_icon() return (wind_arrows[weather_data.current.wind_dir] or "") .. " " end
 function conky_get_visibility() return weather_data.current.visibility_km end
 function conky_get_description()
     local desc = weather_data.current.description or ""
