@@ -9,9 +9,13 @@ A collection of modern, beautiful Conky themes and widgets for Linux desktops.
 ## 🎨 Available Themes
 
 ### 📊 Overload - System Monitor
+
 ![Overload Preview](overload/assets/overload_example.png)
+![Right Preview] (overload/assets/example1.png)
+![Left Preview] (overload/assets/example2.png)
 
 **Features:**
+
 - Multi-core CPU monitoring
 - Memory & network statistics  
 - Process information
@@ -23,10 +27,13 @@ A collection of modern, beautiful Conky themes and widgets for Linux desktops.
 ---
 
 ### 🎵 LastFM - Music Display
+
 ![LastFM Preview](lastfm/assets/lastfm_example.png)
 
 **Features:**
+
 - Real-time Last.fm integration
+
 - Album artwork display
 - Personal play statistics
 - Track duration & info
@@ -39,12 +46,14 @@ A collection of modern, beautiful Conky themes and widgets for Linux desktops.
 ## 🚀 Quick Start
 
 ### Option 1: Clone Everything
+
 ```bash
 git clone https://github.com/SethDigerati/conky-themes-repo.git
 cd conky-themes-widgets
 ```
 
 ### Option 2: Download Individual Themes
+
 ```bash
 # Just the system monitor
 git clone --depth 1 --filter=blob:none --sparse https://github.com/SethDigerati/conky-themes-repo.git
@@ -56,6 +65,7 @@ git sparse-checkout set lastfm
 ```
 
 ### Running Themes
+
 ```bash
 # System Monitor
 cd overload && ./install.sh
@@ -70,17 +80,19 @@ conky -c "lastfm panel"
 ## 📋 Requirements
 
 ### Universal Requirements
+
 - **Linux** with X11 window system
 - **Conky** system monitor
 
 ### Theme-Specific Requirements
 
-| Theme | Additional Requirements |
-|-------|------------------------|
-| **Overload** | None |
-| **LastFM** | `curl`, `lua-dkjson`, Last.fm API key |
+| Theme        | Additional Requirements                  |
+|--------------|------------------------------------------|
+| **Overload** | None                                     |
+| **LastFM**   | `curl`, `lua-dkjson`, Last.fm API key    |
 
 ### Installation Commands
+
 ```bash
 # Ubuntu/Debian
 sudo apt install conky-all curl lua-dkjson
@@ -94,58 +106,15 @@ sudo dnf install conky curl lua-dkjson
 
 ## 🎯 Theme Comparison
 
-| Feature | Overload | LastFM |
-|---------|----------|--------|
-| **Purpose** | System monitoring | Music display |
-| **Complexity** | Simple | Moderate |
-| **Dependencies** | Conky only | Conky + API |
-| **Network** | No | Yes |
-| **Setup Time** | 2 minutes | 5 minutes |
-| **Customization** | High | High |
-| **Resource Usage** | Minimal | Minimal |
-
-## 🛠️ Installation
-
-Each theme includes an automated installation script:
-
-```bash
-cd theme-name
-./install.sh
-```
-
-The scripts will:
-- ✅ Check dependencies
-- ✅ Create required directories  
-- ✅ Set up configuration files
-- ✅ Provide next steps
-
-## 🎨 Customization
-
-### Colors
-Both themes support easy color customization:
-
-```bash
-# Edit theme configuration files
-nano overload/conkyrc         # Overload colors
-nano lastfm/"lastfm panel"    # LastFM colors
-```
-
-### Positioning
-```bash
-# Common position options
-alignment top_left      # Top left corner
-alignment top_right     # Top right corner  
-alignment bottom_left   # Bottom left corner
-alignment bottom_right  # Bottom right corner
-```
-
-### Transparency
-```bash
-# Adjust transparency (0-255)
-own_window_argb_value 150   # Semi-transparent
-own_window_argb_value 0     # Fully transparent
-own_window_argb_value 255   # Opaque
-```
+| Feature            | Overload          | LastFM        |
+|--------------------|-------------------|---------------|
+| **Purpose**        | System monitoring | Music display |
+| **Complexity**     | Simple            | Moderate      |
+| **Dependencies**   | Conky only        | Conky + API   |
+| **Network**        | No                | Yes           |
+| **Setup Time**     | 2 minutes         | 5 minutes     |
+| **Customization**  | High              | High          |
+| **Resource Usage** | Minimal           | Minimal       |
 
 ## 📁 Repository Structure
 
@@ -166,6 +135,7 @@ conky-themes-widgets/
     ├── 🛠️ install.sh        # Installation script
     └── 📁 assets/           # Screenshots & cache
 ...more
+```
 
 ## 🤝 Contributing
 
@@ -178,6 +148,7 @@ Contributions are welcome! Here's how:
 5. **Open** a Pull Request
 
 ### Contribution Ideas
+
 - 🎨 New themes
 - 🔧 Widget components
 - 🐛 Bug fixes
@@ -187,15 +158,16 @@ Contributions are welcome! Here's how:
 ## 📊 Features Roadmap
 
 ### Planned Themes
+
 - [ ] 🌡️ Weather widget
 - [ ] 📈 Cryptocurrency tracker
 - [ ] 🔗 Network monitor ✅
 - [ ] 💾 Disk usage analyzer ✅
 
 ### Planned Features
+
 - [ ] 🎨 Theme manager script
 - [ ] 🔄 Auto-updater
-
 
 ## 📄 License
 
@@ -212,14 +184,14 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 - 🐛 **Bug Reports**: [GitHub Issues](https://github.com/SethDigeraticonky-themes-repo/issues)
 - 💬 **Discussions**: [GitHub Discussions](https://github.com/SethDigerati/conky-themes-repo/discussions)
-- 📧 **Email**: sethodhiambojad@gmail.com
+- 📧 **Email**: <sethodhiambojad@gmail.com>
 
 ---
 
 <div align="center">
 
-**⭐ Star this repo if you find it useful! ⭐**
+⭐ Star this repo if you find it useful! ⭐
 
-*Made with ❤️ for the Linux community*
+Made with ❤️ for the Linux community
 
 </div>
