@@ -353,6 +353,13 @@ local function fetch_forecast(lat, lon)
             local pop = chunk:match('"pop":([%d%.]+)')
             forecast.pop = tonumber(pop) or 0
             
+            -- Wind data
+            local wind_speed = chunk:match('"speed":([%d%.]+)')
+            local wind_deg = chunk:match('"deg":([%d%.]+)')
+            forecast.wind_speed = tonumber(wind_speed) or 0
+            forecast.wind_deg = tonumber(wind_deg) or 0
+            forecast.wind_dir = deg_to_direction(forecast.wind_deg)
+            
             local day_key = os.date("%Y-%m-%d", tonumber(forecast.dt))
             forecast.date = os.date("%a %d", tonumber(forecast.dt))
             forecast.day_name = os.date("%A", tonumber(forecast.dt))
@@ -371,7 +378,10 @@ local function fetch_forecast(lat, lon)
                     pop = string.format("%.2f", forecast.pop),
                     description = forecast.description,
                     icon = forecast.icon,
-                    icon_path = forecast.icon_path
+                    icon_path = forecast.icon_path,
+                    wind_speed = forecast.wind_speed,
+                    wind_deg = forecast.wind_deg,
+                    wind_dir = forecast.wind_dir
                 })
             end
             
@@ -390,7 +400,10 @@ local function fetch_forecast(lat, lon)
                     precipitation = forecast.precipitation,
                     pop_max = forecast.pop,
                     description = forecast.description,
-                    icon = forecast.icon
+                    icon = forecast.icon,
+                    wind_speed_sum = forecast.wind_speed,
+                    wind_speed_count = 1,
+                    wind_deg = forecast.wind_deg
                 }
             else
                 local d = daily_data[day_key]
@@ -402,10 +415,13 @@ local function fetch_forecast(lat, lon)
                 d.visibility_count = d.visibility_count + 1
                 d.precipitation = d.precipitation + forecast.precipitation
                 d.pop_max = math.max(d.pop_max or 0, forecast.pop)
+                d.wind_speed_sum = d.wind_speed_sum + forecast.wind_speed
+                d.wind_speed_count = d.wind_speed_count + 1
                 local hour = tonumber(os.date("%H", tonumber(forecast.dt)))
                 if hour >= 11 and hour <= 14 then
                     d.description = forecast.description
                     d.icon = forecast.icon
+                    d.wind_deg = forecast.wind_deg  -- Use midday wind direction
                 end
             end
             
@@ -425,6 +441,8 @@ local function fetch_forecast(lat, lon)
     local day_count = 0
     for _, day_key in ipairs(sorted_days) do
         local d = daily_data[day_key]
+        local avg_wind_speed = d.wind_speed_sum / d.wind_speed_count
+        local wind_dir = deg_to_direction(d.wind_deg or 0)
         table.insert(weather_data.daily_forecast, {
             date = d.date,
             day_name = d.day_name,
@@ -438,7 +456,9 @@ local function fetch_forecast(lat, lon)
             description = d.description,
             icon = d.icon,
             icon_path = get_icon_path(d.description, d.icon),
-            moon = get_moon_phase(d.dt)
+            moon = get_moon_phase(d.dt),
+            wind_speed = avg_wind_speed,
+            wind_dir = wind_dir
         })
         day_count = day_count + 1
         if day_count >= 8 then break end
@@ -571,11 +591,33 @@ function conky_forecast_visibility_1() return get_hourly_field(1, "visibility_km
 function conky_forecast_precipitation_1() return get_hourly_field(1, "precipitation") end
 function conky_forecast_pop_1() return get_hourly_field(1, "pop") end
 function conky_forecast_icon_1() return get_hourly_field(1, "icon_path") end
+function conky_forecast_winds_1()
+    local speed = get_hourly_field(1, "wind_speed")
+    if speed == "N/A" then return "N/A" end
+    return string.format("%.0f", speed * 3.6)  -- Convert m/s to km/h
+end
+function conky_forecast_wind_dir_1() return get_hourly_field(1, "wind_dir") end
+function conky_forecast_wind_icon_1()
+    local dir = get_hourly_field(1, "wind_dir")
+    return (wind_arrows[dir] or "") .. " "
+end
 
 -- ============ DAILY FORECAST (Slots 2-7) ============
 local function get_daily_field(day, field)
     local f = weather_data.daily_forecast[day]
     return f and f[field] or "N/A"
+end
+
+-- Helper for daily forecast wind (converts m/s to km/h)
+local function get_daily_wind(day)
+    local speed = get_daily_field(day, "wind_speed")
+    if speed == "N/A" then return "N/A" end
+    return string.format("%.0f", speed * 3.6)
+end
+
+local function get_daily_wind_icon(day)
+    local dir = get_daily_field(day, "wind_dir")
+    return (wind_arrows[dir] or "") .. " "
 end
 
 function conky_forecast_day_2() return get_daily_field(1, "date") end
@@ -586,6 +628,9 @@ function conky_forecast_visibility_2() return get_daily_field(1, "visibility_km"
 function conky_forecast_precipitation_2() return get_daily_field(1, "precipitation") end
 function conky_forecast_pop_2() return get_daily_field(1, "pop") end
 function conky_forecast_icon_2() return get_daily_field(1, "icon_path") end
+function conky_forecast_winds_2() return get_daily_wind(1) end
+function conky_forecast_wind_dir_2() return get_daily_field(1, "wind_dir") end
+function conky_forecast_wind_icon_2() return get_daily_wind_icon(1) end
 
 function conky_forecast_day_3() return get_daily_field(2, "date") end
 function conky_forecast_weather_3() return title_case(get_daily_field(2, "description")) end
@@ -595,6 +640,9 @@ function conky_forecast_visibility_3() return get_daily_field(2, "visibility_km"
 function conky_forecast_precipitation_3() return get_daily_field(2, "precipitation") end
 function conky_forecast_pop_3() return get_daily_field(2, "pop") end
 function conky_forecast_icon_3() return get_daily_field(2, "icon_path") end
+function conky_forecast_winds_3() return get_daily_wind(2) end
+function conky_forecast_wind_dir_3() return get_daily_field(2, "wind_dir") end
+function conky_forecast_wind_icon_3() return get_daily_wind_icon(2) end
 
 function conky_forecast_day_4() return get_daily_field(3, "date") end
 function conky_forecast_weather_4() return title_case(get_daily_field(3, "description")) end
@@ -604,6 +652,9 @@ function conky_forecast_visibility_4() return get_daily_field(3, "visibility_km"
 function conky_forecast_precipitation_4() return get_daily_field(3, "precipitation") end
 function conky_forecast_pop_4() return get_daily_field(3, "pop") end
 function conky_forecast_icon_4() return get_daily_field(3, "icon_path") end
+function conky_forecast_winds_4() return get_daily_wind(3) end
+function conky_forecast_wind_dir_4() return get_daily_field(3, "wind_dir") end
+function conky_forecast_wind_icon_4() return get_daily_wind_icon(3) end
 
 function conky_forecast_day_5() return get_daily_field(4, "date") end
 function conky_forecast_weather_5() return title_case(get_daily_field(4, "description")) end
@@ -613,6 +664,9 @@ function conky_forecast_visibility_5() return get_daily_field(4, "visibility_km"
 function conky_forecast_precipitation_5() return get_daily_field(4, "precipitation") end
 function conky_forecast_pop_5() return get_daily_field(4, "pop") end
 function conky_forecast_icon_5() return get_daily_field(4, "icon_path") end
+function conky_forecast_winds_5() return get_daily_wind(4) end
+function conky_forecast_wind_dir_5() return get_daily_field(4, "wind_dir") end
+function conky_forecast_wind_icon_5() return get_daily_wind_icon(4) end
 
 function conky_forecast_day_6() return get_daily_field(5, "date") end
 function conky_forecast_weather_6() return title_case(get_daily_field(5, "description")) end
@@ -622,6 +676,9 @@ function conky_forecast_visibility_6() return get_daily_field(5, "visibility_km"
 function conky_forecast_precipitation_6() return get_daily_field(5, "precipitation") end
 function conky_forecast_pop_6() return get_daily_field(5, "pop") end
 function conky_forecast_icon_6() return get_daily_field(5, "icon_path") end
+function conky_forecast_winds_6() return get_daily_wind(5) end
+function conky_forecast_wind_dir_6() return get_daily_field(5, "wind_dir") end
+function conky_forecast_wind_icon_6() return get_daily_wind_icon(5) end
 
 function conky_forecast_day_7() return get_daily_field(6, "date") end
 function conky_forecast_weather_7() return title_case(get_daily_field(6, "description")) end
@@ -631,6 +688,9 @@ function conky_forecast_visibility_7() return get_daily_field(6, "visibility_km"
 function conky_forecast_precipitation_7() return get_daily_field(6, "precipitation") end
 function conky_forecast_pop_7() return get_daily_field(6, "pop") end
 function conky_forecast_icon_7() return get_daily_field(6, "icon_path") end
+function conky_forecast_winds_7() return get_daily_wind(6) end
+function conky_forecast_wind_dir_7() return get_daily_field(6, "wind_dir") end
+function conky_forecast_wind_icon_7() return get_daily_wind_icon(6) end
 
 function conky_forecast_day_8() return get_daily_field(7, "date") end
 function conky_forecast_weather_8() return title_case(get_daily_field(7, "description")) end
@@ -640,6 +700,9 @@ function conky_forecast_visibility_8() return get_daily_field(7, "visibility_km"
 function conky_forecast_precipitation_8() return get_daily_field(7, "precipitation") end
 function conky_forecast_pop_8() return get_daily_field(7, "pop") end
 function conky_forecast_icon_8() return get_daily_field(7, "icon_path") end
+function conky_forecast_winds_8() return get_daily_wind(7) end
+function conky_forecast_wind_dir_8() return get_daily_field(7, "wind_dir") end
+function conky_forecast_wind_icon_8() return get_daily_wind_icon(7) end
 
 -- Initialize on load
 conky_update_weather()
