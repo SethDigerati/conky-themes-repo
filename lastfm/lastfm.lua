@@ -58,7 +58,36 @@ local cache = {}
 local cache_timeout = 30 -- seconds
 
 -- Cache for image URLs to avoid re-downloading the same image
+-- Key: image_path, Value: {url = image_url, track_key = "artist|track"}
 local image_url_cache = {}
+local IMAGE_CACHE_FILE = DATA_DIR .. "/image_cache.json"
+
+-- Load image cache from disk (persists across Conky restarts)
+local function load_image_cache()
+    local f = io.open(IMAGE_CACHE_FILE, "r")
+    if f then
+        local content = f:read("*a")
+        f:close()
+        local data = json.decode(content)
+        if data then
+            image_url_cache = data
+            log("Loaded image cache from disk with " .. (function() local c=0; for _ in pairs(data) do c=c+1 end; return c end)() .. " entries")
+        end
+    end
+end
+
+-- Save image cache to disk
+local function save_image_cache()
+    local content = json.encode(image_url_cache, {indent = false})
+    local f = io.open(IMAGE_CACHE_FILE, "w")
+    if f then
+        f:write(content)
+        f:close()
+    end
+end
+
+-- Load cache on script init
+load_image_cache()
 
 local function fetch_json()
     local url = api.build_url(api.METHODS.RECENT_TRACKS, {
@@ -326,14 +355,22 @@ function conky_update_lastfm()
                 if image_url and image_url ~= "" then
                     pending_data[i].image_url = image_url
                     
-                    -- Check if we already have this exact image URL cached
+                    -- Build a track key to detect when a different track moves into this slot
+                    local track_key = artist .. "|" .. track
+                    pending_data[i].track_key = track_key
+                    
+                    -- Check if we already have this exact image URL cached AND it's for the same track
                     local need_download = true
-                    if image_url_cache[pending_data[i].image_path] == image_url then
+                    local cached = image_url_cache[pending_data[i].image_path]
+                    if cached and cached.url == image_url and cached.track_key == track_key then
                         local f = io.open(pending_data[i].image_path, "r")
                         if f then
                             f:close()
                             need_download = false
+                            log("Cache hit for " .. pending_data[i].image_path .. " (same track and URL)")
                         end
+                    elseif cached then
+                        log("Cache miss: track changed from " .. (cached.track_key or "nil") .. " to " .. track_key)
                     end
                     
                     if need_download then
@@ -374,15 +411,26 @@ function conky_update_lastfm()
     end
     
     -- Then, move ALL images to final locations
+    local cache_updated = false
     for i = 1, 3 do
         local data = pending_data[i]
         if data and data.staging_image then
             local mv_cmd = string.format('mv "%s" "%s" 2>/dev/null', data.staging_image, data.image_path)
             if os.execute(mv_cmd) then
-                image_url_cache[data.image_path] = data.image_url
+                -- Store both URL and track_key so we can detect track changes
+                image_url_cache[data.image_path] = {
+                    url = data.image_url,
+                    track_key = data.track_key
+                }
+                cache_updated = true
                 log("Moved staging image to: " .. data.image_path)
             end
         end
+    end
+    
+    -- Persist the cache to disk if it changed
+    if cache_updated then
+        save_image_cache()
     end
 end
 
