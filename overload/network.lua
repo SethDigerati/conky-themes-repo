@@ -34,6 +34,33 @@ local function escape_json(str)
     return str:gsub('\\', '\\\\'):gsub('"', '\\"'):gsub('\n', '\\n'):gsub('\r', '\\r'):gsub('\t', '\\t')
 end
 
+-- Streaming/screen-sharing detection for automatic IP privacy
+-- Portable across Wayland compositors (Sway, KDE, GNOME, Hyprland, etc.)
+local function is_streaming_or_sharing()
+    -- Method 1: Check PipeWire for active video streams (universal for Wayland)
+    -- Stream/Input/Video or Stream/Output/Video indicates screen content being shared
+    local pw_video_stream = run("pw-dump 2>/dev/null | grep -q '\"media.class\".*\"Stream/[A-Za-z]*/Video\"' && echo 1 || echo 0")
+    if pw_video_stream:match("1") then return true end
+    
+    -- Method 2: Check for any active PipeWire video sink/source links (universal)
+    local pw_video_links = run("pw-link -l 2>/dev/null | grep -iE 'video|screen|cast|capture' >/dev/null && echo 1 || echo 0")
+    if pw_video_links:match("1") then return true end
+    
+    -- Method 3: Check for xdg-desktop-portal screencast session files (universal portal method)
+    local portal_session = run("ls /run/user/$(id -u)/.dbus-proxy/* 2>/dev/null | grep -q . && pw-dump 2>/dev/null | grep -qE 'pipewire-screen-audio-capture|xdg-desktop-portal|screen_cast|screencast' && echo 1 || echo 0")
+    if portal_session:match("1") then return true end
+    
+    -- Method 4: Detect wlroots/Sway screen capture (wf-recorder, grim, slurp active capture)
+    local wlr_capture = run("pw-dump 2>/dev/null | grep -qiE 'wlroots|wf-recorder|grim|slurp|wayland.*screen' && echo 1 || echo 0")
+    if wlr_capture:match("1") then return true end
+    
+    -- Method 5: Check PipeWire node properties for any video capture activity
+    local pw_capture_node = run("pw-cli ls Node 2>/dev/null | grep -B2 -A2 'Video' | grep -qiE 'Stream|Capture|screen|cast' && echo 1 || echo 0")
+    if pw_capture_node:match("1") then return true end
+    
+    return false
+end
+
 -- Cached display data
 local display_data = {
     loss = "0",
@@ -175,5 +202,8 @@ function conky_timezone()
 end
 
 function conky_public_ip()
+    if is_streaming_or_sharing() then
+        return "***.***.***.*** (Casting detected!)"
+    end
     return display_data.public_ip
 end
