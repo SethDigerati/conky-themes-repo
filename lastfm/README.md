@@ -69,7 +69,7 @@ A beautiful Conky theme that displays your Last.fm listening activity with real-
    conky -c "/path/to/lastfm/lastfm panel"
    ```
 
-## ⚙️ Configuration
+## Configuration
 
 ### Theme Customization
 
@@ -88,7 +88,7 @@ The `api_config.lua` file contains:
 - Rate limiting settings
 - Cache configuration
 
-## 📁 File Structure
+## File Structure
 
 ```
 lastfm/
@@ -105,7 +105,7 @@ lastfm/
     └── debug.log          # Debug information
 ```
 
-## 🔧 Technical Details
+## Technical Details
 
 ### Portability Features
 
@@ -151,7 +151,7 @@ conky -c /opt/conky-themes/lastfm/"lastfm panel" &
 4. Get personal play counts and track duration
 5. Update Conky display variables
 
-## 🎨 Customization Examples
+## Customization Examples
 
 ### Color Schemes
 
@@ -176,7 +176,7 @@ color1 EAEAEA
 color2 00CC66
 ```
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -219,14 +219,14 @@ If the theme is slow:
 3. Clear cache files: `rm ~/.conky/lastfm/assets/*.json`
 4. Restart Conky
 
-## 🔒 Privacy & Security
+## Privacy & Security
 
 - **API credentials** are stored locally in `api_config.lua`
 - **No personal data** is transmitted except to Last.fm
 - **Local caching** minimizes API requests
 - **Open source** - all code is auditable
 
-## 📊 System Requirements
+## System Requirements
 
 - **OS**: Linux with X11
 - **RAM**: ~10MB additional usage
@@ -234,7 +234,7 @@ If the theme is slow:
 - **Network**: Periodic API calls (~1KB/update)
 - **Disk**: ~5MB for cache and images
 
-## 🎵 Music Integration
+## Music Integration
 
 ### Supported Players
 
@@ -254,7 +254,7 @@ The theme works with any music player that scrobbles to Last.fm:
 3. Enable scrobbling in your player settings
 4. Get API credentials for this theme
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Areas for improvement:
 
@@ -263,11 +263,11 @@ Contributions are welcome! Areas for improvement:
 - Enhanced album artwork handling
 - Performance optimizations
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **Last.fm** - For the excellent music tracking API
 - **Conky** - For the flexible system monitoring framework
@@ -276,4 +276,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-*Made with ❤️ for music lovers and Linux enthusiasts*
+*Made for music lovers and Linux enthusiasts*

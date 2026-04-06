@@ -49,7 +49,7 @@ The widget uses MET Norway weather icons stored in `assets/icons/`. Icons are au
 ![Overload System Monitor](assets/overload_example.png)
 *Clean system monitoring with CPU, memory, and network information*
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -76,7 +76,7 @@ The widget uses MET Norway weather icons stored in `assets/icons/`. Icons are au
    conky -c ~/.conky/overload/conkyrc
    ```
 
-## ⚙️ Configuration
+## Configuration
 
 ### Theme Customization
 
@@ -97,7 +97,7 @@ The theme automatically detects your CPU cores, but you can manually adjust:
 ${cpu cpu1} ${cpu cpu2} ${cpu cpu3} ${cpu cpu4}  # 4-core example
 ```
 
-## 📁 File Structure
+## File Structure
 
 ```
 overload/
@@ -119,7 +119,7 @@ overload/
     └── archlinux-logo.png          # Logo asset
 ```
 
-## 🔧 Technical Details
+## Technical Details
 
 ### System Information Displayed
 
@@ -136,7 +136,7 @@ overload/
 - **CPU Impact**: Minimal (configurable update interval)
 - **Refresh Rate**: 1-5 seconds (customizable)
 
-## 🎨 Customization Examples
+## Customization Examples
 
 ### Color Schemes
 
@@ -170,7 +170,7 @@ gap_x 20
 gap_y 20
 ```
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -198,14 +198,14 @@ wmctrl -l
 update_interval 3  # Update every 3 seconds instead of 1
 ```
 
-## 📊 System Requirements
+## System Requirements
 
 - **OS**: Linux with X11
 - **RAM**: 5-10MB additional usage
 - **CPU**: Minimal impact
 - **Display**: X11 compatible window manager
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Areas for improvement:
 
@@ -214,11 +214,11 @@ Contributions are welcome! Areas for improvement:
 - Hardware sensor support
 - Window manager specific optimizations
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **TeejeeTech** - Original theme inspiration
 - **Conky Community** - For the excellent system monitoring framework
