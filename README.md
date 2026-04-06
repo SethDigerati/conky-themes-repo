@@ -11,8 +11,8 @@ A collection of modern, beautiful Conky themes and widgets for Linux desktops.
 ### Overload - System Monitor
 
 ![Overload Preview](overload/assets/overload_example.png)
-![Right Preview] (overload/assets/example1.png)
-![Left Preview] (overload/assets/example2.png)
+![Right Preview](overload/assets/example1.png)
+![Left Preview](overload/assets/example2.png)
 
 **Features:**
 
@@ -21,8 +21,6 @@ A collection of modern, beautiful Conky themes and widgets for Linux desktops.
 - Process information
 - Clean, modern design
 - Zero dependencies beyond Conky
-
-**[View Details & Installation →](overload/README.md)**
 
 ---
 
@@ -39,8 +37,6 @@ A collection of modern, beautiful Conky themes and widgets for Linux desktops.
 - Track duration & info
 - Fully portable design
 
-**[View Details & Installation →](lastfm/README.md)**
-
 ---
 
 ## Quick Start
@@ -49,7 +45,7 @@ A collection of modern, beautiful Conky themes and widgets for Linux desktops.
 
 ```bash
 git clone https://github.com/SethDigerati/conky-themes-repo.git
-cd conky-themes-widgets
+cd conky-themes-repo
 ```
 
 ### Option 2: Download Individual Themes
@@ -57,7 +53,7 @@ cd conky-themes-widgets
 ```bash
 # Just the system monitor
 git clone --depth 1 --filter=blob:none --sparse https://github.com/SethDigerati/conky-themes-repo.git
-cd conky-themes-widgets
+cd conky-themes-repo
 git sparse-checkout set overload
 
 # Just the music theme
@@ -67,22 +63,34 @@ git sparse-checkout set lastfm
 ### Running Themes
 
 ```bash
-# System Monitor
-cd overload && ./install.sh
-conky -c conkyrc
+# Overload (System Monitor)
+conky -c overload/cpurc
 
-# Music Display  
-cd lastfm && ./install.sh
-# Configure API credentials, then:
-conky -c "lastfm panel"
+# Other Overload modules
+conky -c overload/gpurc
+conky -c overload/networkrc
+conky -c overload/storagerc
+conky -c overload/weather.conf
+
+# Last.fm (Music)
+conky -c lastfm/lastfmrc
 ```
+
+### Last.fm API Credentials
+
+Copy [.env.template](.env.template) to `api.env` (preferred) or `.env`, then set:
+
+- `LASTFM_API_KEY`
+- `LASTFM_USERNAME`
+
+Do not commit your credentials.
 
 ## Requirements
 
 ### Universal Requirements
 
-- **Linux** with X11 window system
-- **Conky** system monitor
+- **Linux**
+- **Conky** (X11-based; on Sway/Wayland you typically run Conky via XWayland)
 
 ### Theme-Specific Requirements
 
@@ -119,21 +127,26 @@ sudo dnf install conky curl lua-dkjson
 ## Repository Structure
 
 ```text
-conky-themes-widgets/
+conky-themes-repo/
 ├── README.md                # This file
 ├── LICENSE                  # MIT License
-├── overload/                # System monitor theme
-│   ├── README.md            # Overload documentation
-│   ├── conkyrc              # Main configuration
-│   ├── install.sh           # Installation script
-│   └── assets/              # Screenshots & resources
-└── lastfm/                  # Music theme
-    ├── README.md            # LastFM documentation  
-    ├── lastfm panel         # Main configuration
-    ├── lastfm.lua           # Core logic
-    ├── api_config.lua.template  # API setup
-    ├── install.sh           # Installation script
-    └── assets/              # Screenshots & cache
+├── .env.template            # API credentials template
+├── api.env                  # API credentials (keep untracked/private)
+├── config/
+│   └── api-config.lua        # Loads api.env/.env and exposes API config
+├── overload/                 # System monitor configs
+│   ├── cpurc
+│   ├── gpurc
+│   ├── networkrc
+│   ├── storagerc
+│   ├── weather.conf
+│   ├── network.lua
+│   ├── weather.lua
+│   └── assets/               # Screenshots & resources
+└── lastfm/
+    ├── lastfmrc              # Conky config
+    ├── lastfm.lua            # Last.fm API logic
+    └── assets/               # Screenshot(s)
 ```
 
 ## Contributing
@@ -181,6 +194,6 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ## Support
 
-- **Bug Reports**: [GitHub Issues](https://github.com/SethDigeraticonky-themes-repo/issues)
+- **Bug Reports**: [GitHub Issues](https://github.com/SethDigerati/conky-themes-repo/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/SethDigerati/conky-themes-repo/discussions)
 - **Email**: <sethodhiambojad@gmail.com>

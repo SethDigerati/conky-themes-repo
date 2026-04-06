@@ -1,12 +1,15 @@
 # ============================================
-# Centralized environment configuration
+# CRITICAL: API Credentials & Sensitive Data
 # ============================================
-.env
+# NEVER commit API keys, usernames, or credentials!
+*.env
 .env.local
+.env.*.local
+config/api.env
+config/api.env.local
 
-# ============================================
-# API Configuration Files (sensitive data)
-# ============================================
+# Legacy config files (may contain old credentials)
+api-config.lua
 api_config.lua
 lastfm/api_config.lua
 lastfm/config.lua
@@ -14,39 +17,136 @@ overload/weather_config.lua
 overload/weather_api_config.lua
 
 # ============================================
-# Generated assets and cache files
+# Cache & Runtime Files (user-specific data)
 # ============================================
-# Last.fm assets
+# XDG Runtime directory caches (contains personal listening history, weather data)
+/tmp/conky_cache*/
+/tmp/lastfm*/
+/tmp/weatherapi*
+/tmp/conky_weather_icon.png
+
+# User cache directory (contains debug logs, cache files, personal data)
+~/.cache/conky/
+~/.cache/conky_cache/
+*.cache
+.cache/
+
+# Widget-specific cache files
+widgets/*/cache/
+widgets/*/*.cache
+widgets/*/*.log
+widgets/lastfm/cover*.png
+widgets/lastfm/cover*.jpg
+widgets/weather/cache/*
+widgets/network/cache/*
+
+# Runtime state files
+*.runtime
+*.state
+run_time_*.txt
+last_update_*.txt
+
+# ============================================
+# Generated Files & User Data
+# ============================================
+# Last.fm personal data (though this is encrypted info)
 lastfm/assets/cover*.png
 lastfm/assets/cover*.jpg
 lastfm/assets/*.json
 lastfm/assets/*.log
 lastfm/assets/temp_*
+lastfm/*.cache
 
-# System files
+# Debug logs (contain API responses and personal data)
+debug.log
+*.log
+~/.cache/conky/debug.log
+
+# Temporary files
+temp_*
+tmp_*
+*.tmp
+
+# ============================================
+# System & OS Files
+# ============================================
+# macOS
 .DS_Store
 .DS_Store?
 ._*
+.AppleDouble
+.LSOverride
+.TemporaryItems
 .Spotlight-V100
 .Trashes
+.VolumeIcon.icns
 ehthumbs.db
+
+# Windows
 Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+
+# Linux
+.directory
 
 # ============================================
-# Editor files
+# IDE & Editor Files (do NOT commit editor config)
 # ============================================
+.vscode/
+.idea/
+.vim/
 *.swp
 *.swo
 *~
-.vscode/
-.idea/
+.netrwhist
+*.sublime-workspace
+*.sublime-project
+.project
+.pydevproject
+.settings/
 
 # ============================================
-# Backup files
+# Backup & Recovery Files
 # ============================================
 *.bak
 *.backup
 *.orig
+*.save
+~*
+*.old
+
+# ============================================
+# OS-specific files NOT to commit
+# ============================================
+.env.bak
+.env.backup
+config/.env.bak
+config/.env.backup
+
+# ============================================
+# Node modules / Python / Other Language Artifacts
+# ============================================
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# ============================================
+# Git & Version Control
+# ============================================
+.git/
+.gitkeep
+.gitmodules
+
+# ============================================
+# Documentation Build Artifacts
+# ============================================
+docs/_build/
+site/
 
 # ============================================
 # User-specific configurations

@@ -1,17 +1,171 @@
-local json = require("dkjson")
-
--- Setup package path to find api-config.lua in parent directory
+-- Setup package paths early (before requiring JSON libs).
+-- Conky's embedded Lua may not include Arch's default module dirs (e.g. /usr/share/lua/5.5).
 local script_dir = debug.getinfo(1, "S").source:match("^@(.*/)")
 if not script_dir then script_dir = "" end
-package.path = package.path .. ";" .. script_dir .. "../?.lua"
-local api = require("api-config").lastfm
 
--- CONFIG - Using XDG_RUNTIME_DIR for caching
-local XDG_RUNTIME_DIR = os.getenv("XDG_RUNTIME_DIR") or "/tmp"
-local DATA_DIR = XDG_RUNTIME_DIR .. "/lastfm"
+local function add_package_path(p)
+    if package and package.path and not package.path:find(p, 1, true) then
+        package.path = package.path .. ";" .. p
+    end
+end
+
+local function add_package_cpath(p)
+    if package and package.cpath and not package.cpath:find(p, 1, true) then
+        package.cpath = package.cpath .. ";" .. p
+    end
+end
+
+-- Repo-local modules
+add_package_path(script_dir .. "../?.lua")
+add_package_path(script_dir .. "../config/?.lua")
+
+-- System module dirs across common Lua versions (pure-Lua modules like dkjson are version-agnostic).
+local versions = {"5.1", "5.2", "5.3", "5.4", "5.5"}
+for _, v in ipairs(versions) do
+    add_package_path("/usr/share/lua/" .. v .. "/?.lua")
+    add_package_path("/usr/share/lua/" .. v .. "/?/init.lua")
+    add_package_path("/usr/local/share/lua/" .. v .. "/?.lua")
+    add_package_path("/usr/local/share/lua/" .. v .. "/?/init.lua")
+    add_package_cpath("/usr/lib/lua/" .. v .. "/?.so")
+    add_package_cpath("/usr/local/lib/lua/" .. v .. "/?.so")
+end
+
+-- Luajit module dirs (common if Conky is built against LuaJIT)
+add_package_path("/usr/share/luajit-2.1/?.lua")
+add_package_path("/usr/share/luajit-2.1/?/init.lua")
+
+local json = nil
+local json_backend = nil
+
+do
+    local ok, mod = pcall(require, "dkjson")
+    if ok then
+        json = mod
+        json_backend = "dkjson"
+    else
+        ok, mod = pcall(require, "cjson.safe")
+        if ok then
+            json = mod
+            json_backend = "cjson"
+        else
+            ok, mod = pcall(require, "cjson")
+            if ok then
+                json = mod
+                json_backend = "cjson"
+            end
+        end
+    end
+end
+
+local function json_decode(s)
+    if not json then
+        return nil, nil, "No JSON library found (install lua-dkjson or lua-cjson)"
+    end
+
+    if json_backend == "dkjson" then
+        return json.decode(s)
+    end
+
+    local ok, res = pcall(json.decode, s)
+    if ok then
+        return res, nil, nil
+    end
+    return nil, nil, res
+end
+
+local function json_encode(t)
+    if not json then
+        return "{}"
+    end
+
+    if json_backend == "dkjson" then
+        return json.encode(t, {indent = false})
+    end
+
+    local ok, res = pcall(json.encode, t)
+    if ok then
+        return res
+    end
+    return "{}"
+end
+
+-- Setup package path to find api-config.lua in parent/config directory
+local api_config = require("api-config")
+local api = api_config.lastfm
+
+local function temp_base_dir()
+    return os.getenv("TMPDIR") or os.getenv("XDG_RUNTIME_DIR") or "/tmp"
+end
+
+local function make_session_data_dir()
+    math.randomseed(os.time())
+    local uid = os.getenv("UID") or ""
+    return temp_base_dir() .. "/conky-lastfm-" .. os.time() .. "-" .. math.random(100000, 999999) .. (uid ~= "" and ("-" .. uid) or "")
+end
+
+local function resolve_data_dir()
+    if _G.CONKY_LASTFM_DATA_DIR and _G.CONKY_LASTFM_DATA_DIR ~= "" then
+        return _G.CONKY_LASTFM_DATA_DIR
+    end
+
+    -- Prefer pulling the directory from the Conky config via template1
+    if type(conky_parse) == "function" then
+        local parsed = conky_parse("${template1}")
+        if parsed and parsed ~= "" and parsed ~= "${template1}" then
+            return parsed
+        end
+    end
+
+    return make_session_data_dir()
+end
+
+-- CONFIG - Use per-launch temp directory
+local DATA_DIR = resolve_data_dir()
+_G.CONKY_LASTFM_DATA_DIR = DATA_DIR
 local RAW_JSON = DATA_DIR .. "/raw.json"
 local LOG_FILE = DATA_DIR .. "/debug.log"
-local curl = "/usr/bin/curl"
+
+local function find_curl()
+    local handle = io.popen("command -v curl 2>/dev/null")
+    if handle then
+        local path = handle:read("*l")
+        handle:close()
+        if path and path ~= "" then
+            return path
+        end
+    end
+
+    -- Common fallbacks when PATH is minimal (common in Conky on some WMs).
+    local f = io.open("/usr/bin/curl", "r")
+    if f then
+        f:close()
+        return "/usr/bin/curl"
+    end
+    f = io.open("/bin/curl", "r")
+    if f then
+        f:close()
+        return "/bin/curl"
+    end
+    return "curl"
+end
+
+local curl = find_curl()
+
+-- Normalize os.execute() results across Lua versions.
+-- Lua 5.1 may return a numeric exit code; Lua 5.2+ returns (ok, what, code).
+local function exec_ok(cmd)
+    local r1, _, r3 = os.execute(cmd)
+    if type(r1) == "boolean" then
+        return r1
+    end
+    if type(r1) == "number" then
+        return r1 == 0
+    end
+    if type(r3) == "number" then
+        return r3 == 0
+    end
+    return false
+end
 
 -- Logger function
 local function log(message)
@@ -24,26 +178,33 @@ end
 
 -- Check for internet connectivity
 local function check_internet()
-    -- Try to reach a reliable endpoint with short timeout
-    local handle = io.popen("curl -s --max-time 3 -o /dev/null -w '%{http_code}' http://ip-api.com/json/ 2>/dev/null")
-    if handle then
-        local result = handle:read("*a")
-        handle:close()
-        if result and result:match("200") then
-            return true
-        end
-    end
-    -- Fallback: try ping
-    local ping_result = os.execute("ping -c 1 -W 2 1.1.1.1 >/dev/null 2>&1")
-    return ping_result == 0 or ping_result == true
+    -- Probe Last.fm directly with short timeouts.
+    -- More relevant than ip-api and avoids depending on `ping` being present/allowed.
+    local probe_url = "https://ws.audioscrobbler.com/2.0/?format=json"
+    local cmd = string.format('"%s" -s -S --connect-timeout 3 --max-time 5 -o /dev/null "%s" 2>/dev/null', curl, probe_url)
+    return exec_ok(cmd)
 end
 
 -- Create assets dir
-local mkdir_result = os.execute("mkdir -p " .. DATA_DIR)
-if not mkdir_result then
-    log("Failed to create directory: " .. DATA_DIR)
+if not exec_ok("mkdir -p \"" .. DATA_DIR .. "\"") then
+    -- If we can't create the requested directory, fall back to a new session dir.
+    local fallback_dir = make_session_data_dir()
+    if exec_ok("mkdir -p \"" .. fallback_dir .. "\"") then
+        DATA_DIR = fallback_dir
+        _G.CONKY_LASTFM_DATA_DIR = DATA_DIR
+        RAW_JSON = DATA_DIR .. "/raw.json"
+        LOG_FILE = DATA_DIR .. "/debug.log"
+    end
 end
 log("Starting Last.fm script, caching to: " .. DATA_DIR)
+log("Using api-config from: " .. tostring(api_config.env_path or "(unknown)"))
+log("Last.fm USERNAME=" .. tostring(api.USERNAME) .. " API_KEY=" .. ((api.API_KEY and api.API_KEY ~= "" and api.API_KEY ~= "YOUR_API_KEY_HERE") and "present" or "missing"))
+log("curl binary: " .. tostring(curl))
+if json_backend then
+    log("JSON backend: " .. tostring(json_backend))
+else
+    log("ERROR: No JSON library found (install lua-dkjson or lua-cjson)")
+end
 
 -- Initialize global variables
 for i = 1, 3 do
@@ -73,7 +234,7 @@ local function load_image_cache()
     if f then
         local content = f:read("*a")
         f:close()
-        local data = json.decode(content)
+        local data = json_decode(content)
         if data then
             image_url_cache = data
             log("Loaded image cache from disk with " .. (function() local c=0; for _ in pairs(data) do c=c+1 end; return c end)() .. " entries")
@@ -83,7 +244,7 @@ end
 
 -- Save image cache to disk
 local function save_image_cache()
-    local content = json.encode(image_url_cache, {indent = false})
+    local content = json_encode(image_url_cache)
     local f = io.open(IMAGE_CACHE_FILE, "w")
     if f then
         f:write(content)
@@ -95,14 +256,57 @@ end
 load_image_cache()
 
 local function fetch_json()
+    if not api or not api.USERNAME or api.USERNAME == "" or api.USERNAME == "YOUR_LASTFM_USERNAME_HERE" then
+        log("Last.fm USERNAME is not configured (check api.env/.env loading)")
+        return false
+    end
+    if not api.API_KEY or api.API_KEY == "" or api.API_KEY == "YOUR_API_KEY_HERE" then
+        log("Last.fm API key is not configured (check api.env/.env loading)")
+        return false
+    end
+
     local url = api.build_url(api.METHODS.RECENT_TRACKS, {
         user = api.USERNAME,
         limit = 5
     })
     
     local temp_raw = RAW_JSON .. ".tmp"
-    local cmd = string.format('%s -s -S -o "%s" "%s" 2>/dev/null && mv "%s" "%s"', curl, temp_raw, url, temp_raw, RAW_JSON)
-    return os.execute(cmd)
+    local cmd = string.format('"%s" -s -S --connect-timeout 5 --max-time 10 -o "%s" "%s" 2>/dev/null && mv "%s" "%s"', curl, temp_raw, url, temp_raw, RAW_JSON)
+    if not exec_ok(cmd) then
+        log("curl fetch failed (command exit != 0)")
+        return false
+    end
+
+    local f = io.open(RAW_JSON, "r")
+    if not f then
+        log("raw.json missing after fetch")
+        return false
+    end
+
+    local content = f:read("*a")
+    f:close()
+    if not content or content == "" then
+        log("raw.json empty after fetch")
+        return false
+    end
+
+    local data, _, err = json_decode(content)
+    if not data then
+        log("Failed to decode raw.json: " .. tostring(err))
+        return false
+    end
+
+    if data.error or data.message then
+        log("Last.fm API error " .. tostring(data.error) .. ": " .. tostring(data.message))
+        return false
+    end
+
+    if not (data.recenttracks and data.recenttracks.track) then
+        log("Last.fm response missing recenttracks.track")
+        return false
+    end
+
+    return true
 end
 
 local function get_tracks()
@@ -112,7 +316,7 @@ local function get_tracks()
     local content = f:read("*a")
     f:close()
     
-    local data = json.decode(content)
+    local data = json_decode(content)
     if not data or not data.recenttracks or not data.recenttracks.track then
         return {}
     end
@@ -182,15 +386,15 @@ local function get_track_info_cached(artist, track)
     
     local temp_file = DATA_DIR .. "/temp_scrobbles.json"
     local temp_file_tmp = temp_file .. ".tmp"
-    local cmd = string.format('%s -s -S -o "%s" "%s" 2>/dev/null && mv "%s" "%s"', curl, temp_file_tmp, scrobbles_url, temp_file_tmp, temp_file)
+    local cmd = string.format('"%s" -s -S -o "%s" "%s" 2>/dev/null && mv "%s" "%s"', curl, temp_file_tmp, scrobbles_url, temp_file_tmp, temp_file)
     
     local personal_playcount = "-"
-    if os.execute(cmd) then
+    if exec_ok(cmd) then
         local f = io.open(temp_file, "r")
         if f then
             local content = f:read("*a")
             f:close()
-            local data = json.decode(content)
+            local data = json_decode(content)
             if data and data.trackscrobbles and data.trackscrobbles["@attr"] then
                 local total = tonumber(data.trackscrobbles["@attr"]["total"]) or 0
                 personal_playcount = total > 0 and tostring(total) or "-"
@@ -207,14 +411,14 @@ local function get_track_info_cached(artist, track)
     local artist_plays = "-"
     local temp_artist_file = DATA_DIR .. "/temp_artist.json"
     local temp_artist_tmp = temp_artist_file .. ".tmp"
-    local artist_cmd = string.format('%s -s -S -o "%s" "%s" 2>/dev/null && mv "%s" "%s"', curl, temp_artist_tmp, artist_url, temp_artist_tmp, temp_artist_file)
+    local artist_cmd = string.format('"%s" -s -S -o "%s" "%s" 2>/dev/null && mv "%s" "%s"', curl, temp_artist_tmp, artist_url, temp_artist_tmp, temp_artist_file)
     
-    if os.execute(artist_cmd) then
+    if exec_ok(artist_cmd) then
         local f = io.open(temp_artist_file, "r")
         if f then
             local content = f:read("*a")
             f:close()
-            local data = json.decode(content)
+            local data = json_decode(content)
             if data and data.artist and data.artist.stats and data.artist.stats.userplaycount then
                 local plays = tonumber(data.artist.stats.userplaycount) or 0
                 artist_plays = plays > 0 and tostring(plays) or "-"
@@ -231,14 +435,14 @@ local function get_track_info_cached(artist, track)
     local duration_str = "-"
     local temp_duration_file = DATA_DIR .. "/temp_duration.json"
     local temp_duration_tmp = temp_duration_file .. ".tmp"
-    local duration_cmd = string.format('%s -s -S -o "%s" "%s" 2>/dev/null && mv "%s" "%s"', curl, temp_duration_tmp, duration_url, temp_duration_tmp, temp_duration_file)
+    local duration_cmd = string.format('"%s" -s -S -o "%s" "%s" 2>/dev/null && mv "%s" "%s"', curl, temp_duration_tmp, duration_url, temp_duration_tmp, temp_duration_file)
     
-    if os.execute(duration_cmd) then
+    if exec_ok(duration_cmd) then
         local f = io.open(temp_duration_file, "r")
         if f then
             local content = f:read("*a")
             f:close()
-            local data = json.decode(content)
+            local data = json_decode(content)
             if data and data.track and data.track.duration then
                 local duration = tonumber(data.track.duration) or 0
                 if duration > 0 then
@@ -269,7 +473,15 @@ local function download_image_if_needed(image_url, image_path)
     end
     
     -- Check if we already have this exact image URL cached for this path
-    if image_url_cache[image_path] == image_url then
+    local cached = image_url_cache[image_path]
+    local cached_url = nil
+    if type(cached) == "table" then
+        cached_url = cached.url
+    elseif type(cached) == "string" then
+        cached_url = cached
+    end
+
+    if cached_url and cached_url == image_url then
         -- Check if the file still exists
         local f = io.open(image_path, "r")
         if f then
@@ -282,12 +494,15 @@ local function download_image_if_needed(image_url, image_path)
     -- Download new image
     log("Downloading new image from " .. image_url .. " to " .. image_path)
     local temp_image = image_path .. ".tmp"
-    local cmd = string.format('%s -s -S -o "%s" "%s" 2>/dev/null && mv "%s" "%s"', curl, temp_image, image_url, temp_image, image_path)
-    local success = os.execute(cmd)
+    local cmd = string.format('"%s" -s -S -o "%s" "%s" 2>/dev/null && mv "%s" "%s"', curl, temp_image, image_url, temp_image, image_path)
+    local success = exec_ok(cmd)
     
     if success then
-        -- Cache the URL for this image path
-        image_url_cache[image_path] = image_url
+        -- Cache the URL for this image path (match main loop format)
+        image_url_cache[image_path] = {
+            url = image_url,
+            track_key = ""
+        }
         log("Successfully downloaded and cached image for " .. image_path)
     else
         log("Failed to download image from " .. image_url)
@@ -299,8 +514,7 @@ end
 function conky_update_lastfm()
     -- Check for internet connectivity first
     if not check_internet() then
-        log("No internet connection, skipping update")
-        return
+        log("Internet probe failed; attempting Last.fm fetch anyway")
     end
     
     if not fetch_json() then 
@@ -381,8 +595,8 @@ function conky_update_lastfm()
                     if need_download then
                         local staging_image = DATA_DIR .. "/cover" .. i .. "_staging.png"
                         log("Downloading image to staging: " .. staging_image)
-                        local cmd = string.format('%s -s -S -o "%s" "%s" 2>/dev/null', curl, staging_image, image_url)
-                        if os.execute(cmd) then
+                        local cmd = string.format('"%s" -s -S -o "%s" "%s" 2>/dev/null', curl, staging_image, image_url)
+                        if exec_ok(cmd) then
                             pending_data[i].staging_image = staging_image
                         end
                     end
@@ -421,7 +635,7 @@ function conky_update_lastfm()
         local data = pending_data[i]
         if data and data.staging_image then
             local mv_cmd = string.format('mv "%s" "%s" 2>/dev/null', data.staging_image, data.image_path)
-            if os.execute(mv_cmd) then
+            if exec_ok(mv_cmd) then
                 -- Store both URL and track_key so we can detect track changes
                 image_url_cache[data.image_path] = {
                     url = data.image_url,
@@ -457,6 +671,6 @@ function conky_nowplaying1()
     elseif status == "Paused" then
         return "I I Paused"
     else
-        return "something"  -- Return empty string when not playing
+        return ""  -- Return empty string when not playing
     end
 end

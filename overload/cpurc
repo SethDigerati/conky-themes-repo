@@ -4,6 +4,8 @@
 --  Description: A fork and redesign of teejeetech(teejee2008@gmail.com) original conky theme
 -- **********************************************************************
 
+local CONFIG_DIR = (debug.getinfo(1, "S").source:match("^@(.*/)") or "./")
+
 conky.config = {
     -- Basic settings
     background = true,
@@ -49,7 +51,7 @@ conky.config = {
     
     -- Misc settings
     stippled_borders = 0,
-    update_interval = 2.0,
+    update_interval = 1.0,
     uppercase = false,
     use_spacer = 'none',
     temperature_unit = 'celsius',
@@ -78,7 +80,7 @@ conky.config = {
 }
 
 conky.text = [[
-${image ./assets/archlinux-logo.png -s 300x100} ${voffset 80}
+${image ]] .. CONFIG_DIR .. [[assets/archlinux-logo.png -s 300x100} ${voffset 80}
 ${color2}SYSTEM ${color0}${voffset -2}${hr 1}
 Date: ${time %A, %B %d}${alignr}${time %H:%M}
 OS: ${execi 60 lsb_release -d | cut -f2-}

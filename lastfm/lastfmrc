@@ -4,7 +4,21 @@
 --  Description: A fork and redesign of teejeetech(teejee2008@gmail.com) original conky theme
 -- **********************************************************************
 
+local CONFIG_DIR = (debug.getinfo(1, "S").source:match("^@(.*/)") or "./")
+
+local function temp_base_dir()
+  return os.getenv("TMPDIR") or os.getenv("XDG_RUNTIME_DIR") or "/tmp"
+end
+
+math.randomseed(os.time())
+local uid = os.getenv("UID") or ""
+local DATA_DIR = temp_base_dir() .. "/conky-lastfm-" .. os.time() .. "-" .. math.random(100000, 999999) .. (uid ~= "" and ("-" .. uid) or "")
+
+-- Share with lastfm.lua (Conky uses the same Lua state)
+_G.CONKY_LASTFM_DATA_DIR = DATA_DIR
+
 conky.config = {
+  template1 = DATA_DIR,
     -- Basic settings
     background = true,
     
@@ -78,14 +92,14 @@ conky.config = {
     color4 = 'green',
     color5 = 'pink',
 
-  lua_load = './lastfm.lua',
+  lua_load = CONFIG_DIR .. 'lastfm.lua',
   lua_draw_hook_post = 'conky_update_lastfm',
 }
 
 conky.text = [[
 ${color2}LAST.FM${color1} ${hr 1}
 ${voffset -5}${color2}${font DejaVu Sans:size=11}${lua conky_nowplaying1}${color}${font}
-${image /run/user/1000/lastfm/cover1.png -p 0,30 -s 100x100}${voffset -10}
+${image ]] .. DATA_DIR .. [[/cover1.png -p 0,30 -s 100x100}${voffset -10}
 ${goto 110}${color2}Track:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_track1}${font}
 ${goto 110}${color2}Artist:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_artist1}${font}
 ${goto 110}${color2}Album:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_album1}${font}
@@ -93,11 +107,11 @@ ${goto 110}${color2}Duration:${color1}${font Noto Sans CJK JP:size=9} ${lua conk
 ${goto 110}${color2}Plays:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_playcount1} ${font}${color2}Artist:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_artistplays1}${font}
 ${voffset 10}${color2}Recent Tracks:${color}
 ${voffset -10}${stippled_hr}${voffset -5}
-${image /run/user/1000/lastfm/cover2.png -p 0,160 -s 80x80}${goto 90}${color2}${voffset 10}Track:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_track2}${font}
+${image ]] .. DATA_DIR .. [[/cover2.png -p 0,160 -s 80x80}${goto 90}${color2}${voffset 10}Track:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_track2}${font}
 ${goto 90}${color2}Artist:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_artist2}${font}
 ${goto 90}${color2}Album:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_album2}${font}
 ${goto 90}${color2}Duration:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_duration2} ${font}${color2}Plays:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_playcount2} ${font}${color2}Artist:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_artistplays2}${font}
-${image /run/user/1000/lastfm/cover3.png -p 0,245 -s 80x80}${goto 90}${voffset 10}${color2}Track:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_track3}${font}
+${image ]] .. DATA_DIR .. [[/cover3.png -p 0,245 -s 80x80}${goto 90}${voffset 10}${color2}Track:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_track3}${font}
 ${goto 90}${color2}Artist:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_artist3}${font}
 ${goto 90}${color2}Album:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_album3}${font}
 ${goto 90}${color2}Duration:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_duration3} ${font}${color2}Plays:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_playcount3} ${font}${color2}Artist:${color1}${font Noto Sans CJK JP:size=9} ${lua conky_artistplays3}${font}

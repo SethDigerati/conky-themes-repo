@@ -4,6 +4,8 @@
 --  Description: A fork and redesign of teejeetech(teejee2008@gmail.com) original conky theme
 -- **********************************************************************
 
+local CONFIG_DIR = (debug.getinfo(1, "S").source:match("^@(.*/)") or "./")
+
 conky.config = {
     template0 = 'wlan0',  -- Set your network interface here
 
@@ -52,7 +54,7 @@ conky.config = {
     
     -- Misc settings
     stippled_borders = 0,
-    update_interval = 2.0,
+    update_interval = 1.0,
     uppercase = false,
     use_spacer = 'none',
     temperature_unit = 'celsius',
@@ -80,7 +82,7 @@ conky.config = {
     color4 = 'green',
     color5 = 'pink',
 
-    lua_load = '/home/digerati/.conky/conky-themes-repo/overload/network.lua',
+    lua_load = CONFIG_DIR .. 'network.lua',
     lua_draw_hook_post = 'conky_update_network',
 }
 

@@ -7,8 +7,11 @@
 
 -- Load the API configuration
 local script_dir = debug.getinfo(1, "S").source:match("^@(.*/)")
-if not script_dir then script_dir = "/home/digerati/.conky/conky-themes-repo/overload/" end
-package.path = package.path .. ";" .. script_dir .. "../?.lua"
+if not script_dir then
+    -- Fallback: assume it's being run from overload directory
+    script_dir = "./"
+end
+package.path = package.path .. ";" .. script_dir .. "../?.lua;" .. script_dir .. "../config/?.lua"
 
 local config = require("api-config").weather
 
