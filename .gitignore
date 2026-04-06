@@ -1,11 +1,22 @@
+# ============================================
 # Centralized environment configuration
+# ============================================
 .env
+.env.local
 
-# User-specific configurations
+# ============================================
+# API Configuration Files (sensitive data)
+# ============================================
+api_config.lua
+lastfm/api_config.lua
 lastfm/config.lua
 overload/weather_config.lua
+overload/weather_api_config.lua
 
+# ============================================
 # Generated assets and cache files
+# ============================================
+# Last.fm assets
 lastfm/assets/cover*.png
 lastfm/assets/cover*.jpg
 lastfm/assets/*.json
@@ -21,20 +32,31 @@ lastfm/assets/temp_*
 ehthumbs.db
 Thumbs.db
 
+# ============================================
 # Editor files
+# ============================================
 *.swp
 *.swo
 *~
 .vscode/
 .idea/
 
+# ============================================
 # Backup files
+# ============================================
 *.bak
 *.backup
 *.orig
 
+# ============================================
 # User-specific configurations
+# ============================================
 *.local
 *_local.*
+conkyrc.local
+"lastfm panel.local"
 
+# ============================================
+# Project-specific
+# ============================================
 weather/
