@@ -6,9 +6,9 @@ A collection of modern, beautiful Conky themes and widgets for Linux desktops.
 ![GitHub license](https://img.shields.io/github/license/SethDigerati/conky-themes-repo)
 ![GitHub stars](https://img.shields.io/github/stars/SethDigerati/conky-themes-repo)
 
-## 🎨 Available Themes
+## Available Themes
 
-### 📊 Overload - System Monitor
+### Overload - System Monitor
 
 ![Overload Preview](overload/assets/overload_example.png)
 ![Right Preview] (overload/assets/example1.png)
@@ -26,7 +26,7 @@ A collection of modern, beautiful Conky themes and widgets for Linux desktops.
 
 ---
 
-### 🎵 LastFM - Music Display
+### LastFM - Music Display
 
 ![LastFM Preview](lastfm/assets/lastfm_example.png)
 
@@ -43,7 +43,7 @@ A collection of modern, beautiful Conky themes and widgets for Linux desktops.
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Option 1: Clone Everything
 
@@ -77,7 +77,7 @@ cd lastfm && ./install.sh
 conky -c "lastfm panel"
 ```
 
-## 📋 Requirements
+## Requirements
 
 ### Universal Requirements
 
@@ -104,7 +104,7 @@ sudo pacman -S conky curl lua-dkjson
 sudo dnf install conky curl lua-dkjson
 ```
 
-## 🎯 Theme Comparison
+## Theme Comparison
 
 | Feature            | Overload          | LastFM        |
 |--------------------|-------------------|---------------|
@@ -116,28 +116,27 @@ sudo dnf install conky curl lua-dkjson
 | **Customization**  | High              | High          |
 | **Resource Usage** | Minimal           | Minimal       |
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 conky-themes-widgets/
-├── 📄 README.md              # This file
-├── 📄 LICENSE               # MIT License
-├── 📊 overload/             # System monitor theme
-│   ├── 📄 README.md         # Overload documentation
-│   ├── ⚙️ conkyrc           # Main configuration
-│   ├── 🛠️ install.sh        # Installation script
-│   └── 📁 assets/           # Screenshots & resources
-└── 🎵 lastfm/              # Music theme
-    ├── 📄 README.md         # LastFM documentation  
-    ├── ⚙️ lastfm panel      # Main configuration
-    ├── 🐍 lastfm.lua        # Core logic
-    ├── 📋 api_config.lua.template  # API setup
-    ├── 🛠️ install.sh        # Installation script
-    └── 📁 assets/           # Screenshots & cache
-...more
+├── README.md                # This file
+├── LICENSE                  # MIT License
+├── overload/                # System monitor theme
+│   ├── README.md            # Overload documentation
+│   ├── conkyrc              # Main configuration
+│   ├── install.sh           # Installation script
+│   └── assets/              # Screenshots & resources
+└── lastfm/                  # Music theme
+    ├── README.md            # LastFM documentation  
+    ├── lastfm panel         # Main configuration
+    ├── lastfm.lua           # Core logic
+    ├── api_config.lua.template  # API setup
+    ├── install.sh           # Installation script
+    └── assets/              # Screenshots & cache
 ```
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Here's how:
 
@@ -149,49 +148,39 @@ Contributions are welcome! Here's how:
 
 ### Contribution Ideas
 
-- 🎨 New themes
-- 🔧 Widget components
-- 🐛 Bug fixes
-- 📚 Documentation improvements
-- 🎯 Performance optimizations
+- New themes
+- Widget components
+- Bug fixes
+- Documentation improvements
+- Performance optimizations
 
-## 📊 Features Roadmap
+## Features Roadmap
 
 ### Planned Themes
 
-- [ ] 🌡️ Weather widget
-- [ ] 📈 Cryptocurrency tracker
-- [ ] 🔗 Network monitor ✅
-- [ ] 💾 Disk usage analyzer ✅
+- Weather widget
+- Cryptocurrency tracker
+- Network monitor (in development)
+- Disk usage analyzer (in development)
 
 ### Planned Features
 
-- [ ] 🎨 Theme manager script
-- [ ] 🔄 Auto-updater
+- Theme manager script
+- Auto-updater
 
-## 📄 License
+## License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **[Conky Team](https://github.com/brndnmtthws/conky)** - For the amazing system monitor
 - **[TeejeeTech](http://teejeetech.blogspot.in/)** - Original Overload theme inspiration  
 - **[Last.fm](https://last.fm)** - For the music tracking API
 - **Linux Community** - For continuous support and feedback
 
-## 📞 Support
+## Support
 
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/SethDigeraticonky-themes-repo/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/SethDigerati/conky-themes-repo/discussions)
-- 📧 **Email**: <sethodhiambojad@gmail.com>
-
----
-
-<div align="center">
-
-⭐ Star this repo if you find it useful! ⭐
-
-Made with ❤️ for the Linux community
-
-</div>
+- **Bug Reports**: [GitHub Issues](https://github.com/SethDigeraticonky-themes-repo/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/SethDigerati/conky-themes-repo/discussions)
+- **Email**: <sethodhiambojad@gmail.com>
