@@ -22,7 +22,7 @@ A collection of modern, beautiful Conky themes and widgets for Linux desktops.
 - Clean, modern design
 - Zero dependencies beyond Conky
 
-**[📋 View Details & Installation →](overload/README.md)**
+**[View Details & Installation →](overload/README.md)**
 
 ---
 
@@ -39,7 +39,7 @@ A collection of modern, beautiful Conky themes and widgets for Linux desktops.
 - Track duration & info
 - Fully portable design
 
-**[📋 View Details & Installation →](lastfm/README.md)**
+**[View Details & Installation →](lastfm/README.md)**
 
 ---
 
@@ -118,7 +118,7 @@ sudo dnf install conky curl lua-dkjson
 
 ## Repository Structure
 
-```
+```text
 conky-themes-widgets/
 ├── README.md                # This file
 ├── LICENSE                  # MIT License
