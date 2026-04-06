@@ -4,7 +4,7 @@ A sleek, modern Conky theme for system monitoring with CPU, memory, network, and
 
 ![Overload Theme Preview](assets/overload_example.png)
 
-## ✨ Features
+## Features
 
 - **Multi-Core CPU Monitoring** - Supports 2, 4, 6, and 8-core processors
 - **Memory Usage Display** - RAM and swap memory monitoring
@@ -15,7 +15,7 @@ A sleek, modern Conky theme for system monitoring with CPU, memory, network, and
 - **Clean Modern Design** - Minimalist interface with customizable colors
 - **Multiple Panel Options** - Separate panels for different system components
 
-## 🌤️ Weather Widget
+## Weather Widget
 
 The weather widget uses OpenWeatherMap API to display:
 
@@ -44,7 +44,7 @@ The weather widget uses OpenWeatherMap API to display:
 
 The widget uses MET Norway weather icons stored in `assets/icons/`. Icons are automatically selected based on weather conditions.
 
-## 📸 Screenshot
+## Screenshot
 
 ![Overload System Monitor](assets/overload_example.png)
 *Clean system monitoring with CPU, memory, and network information*

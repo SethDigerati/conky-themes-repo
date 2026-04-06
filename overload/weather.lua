@@ -8,9 +8,9 @@
 -- Load the API configuration
 local script_dir = debug.getinfo(1, "S").source:match("^@(.*/)")
 if not script_dir then script_dir = "/home/digerati/.conky/conky-themes-repo/overload/" end
-package.path = package.path .. ";" .. script_dir .. "?.lua"
+package.path = package.path .. ";" .. script_dir .. "../?.lua"
 
-local config = require("weather_api_config")
+local config = require("api-config").weather
 
 -- Icons directory - absolute path
 local icons_dir = script_dir .. "assets/icons/"

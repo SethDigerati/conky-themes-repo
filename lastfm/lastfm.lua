@@ -1,5 +1,10 @@
 local json = require("dkjson")
-local api = require("api_config")
+
+-- Setup package path to find api-config.lua in parent directory
+local script_dir = debug.getinfo(1, "S").source:match("^@(.*/)")
+if not script_dir then script_dir = "" end
+package.path = package.path .. ";" .. script_dir .. "../?.lua"
+local api = require("api-config").lastfm
 
 -- CONFIG - Using XDG_RUNTIME_DIR for caching
 local XDG_RUNTIME_DIR = os.getenv("XDG_RUNTIME_DIR") or "/tmp"

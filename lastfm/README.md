@@ -4,7 +4,7 @@ A beautiful Conky theme that displays your Last.fm listening activity with real-
 
 ![Last.fm Theme Preview](assets/lastfm_example.png)
 
-## ✨ Features
+## Features
 
 - **Fully Portable** - Works from any directory, no hardcoded paths
 - **Real-time Last.fm Integration** - Shows your currently playing and recently scrobbled tracks
@@ -17,12 +17,12 @@ A beautiful Conky theme that displays your Last.fm listening activity with real-
 - **Clean Music UI** - Designed specifically for music lovers
 - **Easy Setup** - Automated installation script
 
-## 📸 Screenshot
+## Screenshot
 
 ![Last.fm Music Display](assets/lastfm_example.png)
 *Beautiful music display with album art, track info, and personal statistics*
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
