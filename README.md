@@ -64,16 +64,16 @@ git sparse-checkout set lastfm
 
 ```bash
 # Overload (System Monitor)
-conky -c overload/cpurc
+conky -c overload/cpu.conf
 
 # Other Overload modules
-conky -c overload/gpurc
-conky -c overload/networkrc
-conky -c overload/storagerc
+conky -c overload/gpu.conf
+conky -c overload/network.conf
+conky -c overload/storage.conf
 conky -c overload/weather.conf
 
 # Last.fm (Music)
-conky -c lastfm/lastfmrc
+conky -c lastfm/lastfm.conf
 ```
 
 ### Last.fm API Credentials
@@ -135,16 +135,16 @@ conky-themes-repo/
 ├── config/
 │   └── api-config.lua        # Loads api.env/.env and exposes API config
 ├── overload/                 # System monitor configs
-│   ├── cpurc
-│   ├── gpurc
-│   ├── networkrc
-│   ├── storagerc
+│   ├── cpu.conf
+│   ├── gpu.conf
+│   ├── network.conf
+│   ├── storage.conf
 │   ├── weather.conf
 │   ├── network.lua
 │   ├── weather.lua
 │   └── assets/               # Screenshots & resources
 └── lastfm/
-    ├── lastfmrc              # Conky config
+    ├── lastfm.conf           # Conky config
     ├── lastfm.lua            # Last.fm API logic
     └── assets/               # Screenshot(s)
 ```
