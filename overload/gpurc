@@ -1,0 +1,88 @@
+-- **********************************************************************
+--  Conky Theme: Overload
+--  Author: Seth Digerati
+--  Description: A fork and redesign of teejeetech(teejee2008@gmail.com) original conky theme
+-- **********************************************************************
+
+conky.config = {
+    -- Basic settings
+    background = true,
+    
+    -- Position
+    alignment = 'top_right',
+    
+    -- Border settings
+    border_width = 1,
+    draw_borders = false,
+    draw_outline = false,
+     
+    -- Sampling
+    cpu_avg_samples = 5,
+    net_avg_samples = 5,
+    diskio_avg_samples = 5,
+    
+    -- Buffer and output settings
+    no_buffers = true,
+    out_to_console = false,
+    out_to_stderr = false,
+    extra_newline = false,
+    double_buffer = true,
+    draw_shades = false,
+    
+    -- Placement
+    gap_x = 0,
+    gap_y = 680,
+    
+    -- Window properties
+    own_window = true,
+    own_window_type = 'normal',
+    own_window_transparent = true,
+    own_window_colour = '000000',
+    own_window_argb_visual = true,
+    own_window_argb_value = 0,
+    own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',
+    
+    -- Size
+    minimum_width = 400,
+    maximum_width = 400,
+    
+    -- Misc settings
+    stippled_borders = 0,
+    update_interval = 2.0,
+    uppercase = false,
+    use_spacer = 'none',
+    temperature_unit = 'celsius',
+    
+    -- Graph display
+    show_graph_scale = false,
+    show_graph_range = false,
+    draw_graph_borders = false,
+    
+    -- Text and font
+    use_xft = true,
+    draw_shades = true,
+    xftalpha = 100,
+    font = 'GE Inspira:size=10',
+    
+    -- Colors
+    default_color = 'white',
+    default_outline_color = 'white',
+    default_shade_color = 'black',
+    color0 = 'white',
+    color1 = '#FFFFFF',
+    color2 = '#FFE020',
+    color3 = 'blue',
+    color4 = 'green',
+    color5 = 'pink',
+}
+
+conky.text = [[
+${color2}GPU${color}${voffset -2}${hr 1}
+${voffset 4}${color1}Model:${color}${alignr}${exec lspci | grep -i vga | cut -d: -f3 | sed 's/^ *//' | head -1}
+${color1}Driver:${color}${alignr}${exec lsmod | grep -E '^i915|^xe' | awk '{print $1}' | head -1 || echo "Unknown"}
+${color1}Memory Usage:${color}${alignr}${exec cat /proc/meminfo | grep -i shmem | awk '{print int($2/1024)}' | head -1 || echo "0"} / ${exec grep MemTotal /proc/meminfo | awk '{print int($2/1024)}'} MB
+${color1}Temperature:${color}${alignr}${exec sensors 2>/dev/null | grep -E "Package|Core|temp1" | head -1 | awk '{print $2}' | sed 's/+//;s/°C.*//' || echo "N/A"}°C
+${color1}Frequency:${color}${alignr}${exec cat /sys/class/drm/card*/gt_cur_freq_mhz 2>/dev/null | head -1 || echo "N/A"} MHz/${color}${alignr}${exec cat /sys/class/drm/card*/gt_max_freq_mhz 2>/dev/null | head -1 || echo "N/A"} MHz
+${color1}Driver Version:${color}${alignr}${exec uname -r | cut -d'-' -f1}
+${voffset -10}${stippled_hr 1}
+]]
