@@ -81,15 +81,13 @@ conky.config = {
 
 conky.text = [[
 ${color2}SYSTEM ${color0}${voffset -2}${hr 1}
-${font Iosevka:size=15}${time %A %d}${font}
-${time %H:%M}
-OS: ${execi 60 lsb_release -d | cut -f2-}
-Kernel: ${kernel}
-Hostname: ${nodename}
-DE: ${execi 60 echo "$XDG_CURRENT_DESKTOP"} ${exec cat /etc/os-release | grep "VERSION=" | cut -d '"' -f2}${alignr}Uptime: ${uptime}
-${color2}BATTERY${color}${hr 1}
-Model: ${execi 6000 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'vendor' | awk '{$1=""; print $0;}'}.${execi 6000 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'model' | awk '{$1=""; print $0;}'}, Tech: ${execi 6000 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'technology' | awk '{$1=""; print $0;}'} (${execi 6000 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'energy-full-design' | awk '{$1=""; print $0;}'})
+${font Smash Stadium Font:size=55}${time %A}${font}${alignr}${time %H:%M}
+${font Iosevka:size=22}${alignr}${voffset -50}${time %d}${font}${voffset 20}
+Kernel: ${kernel}${alignr}Uptime: ${uptime}
+${color2}BATTERY${color0}${voffset -2}${hr 1}
+Model: ${execi 6000 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'vendor' | awk '{$1=""; print $0;}'}.${execi 6000 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'model' | awk '{$1=""; print $0;}'}
+Tech: ${execi 6000 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'technology' | awk '{$1=""; print $0;}'} (${execi 6000 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'energy-full-design' | awk '{$1=""; print $0;}'})
 ${battery_bar}
-Status: ${battery} (${execi 2 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'energy:' | awk '{ print $2;}'}/${execi 2 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'energy-full:' | awk '{$1=""; print $0;}'})${alignr}Time left:${battery_time}
+Status: ${battery} (${execi 2 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'energy:' | awk '{ print $2;}'}/${execi 2 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'energy-full:' | awk '{$1=""; print $0;}'})${alignr}${battery_time}
 ${voffset -300}
-]]
+]] 
