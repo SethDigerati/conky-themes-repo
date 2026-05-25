@@ -104,11 +104,17 @@ local function make_session_data_dir()
 end
 
 local function resolve_data_dir()
+    -- Allow explicit override via environment variable
+    local env_dir = os.getenv("CONKY_LASTFM_DATA_DIR")
+    if env_dir and env_dir ~= "" then
+        return env_dir
+    end
+
     if _G.CONKY_LASTFM_DATA_DIR and _G.CONKY_LASTFM_DATA_DIR ~= "" then
         return _G.CONKY_LASTFM_DATA_DIR
     end
 
-    -- Prefer pulling the directory from the Conky config via template1
+    -- Prefer pulling the directory from the Conky config via template1 if provided
     if type(conky_parse) == "function" then
         local parsed = conky_parse("${template1}")
         if parsed and parsed ~= "" and parsed ~= "${template1}" then
@@ -116,7 +122,8 @@ local function resolve_data_dir()
         end
     end
 
-    return make_session_data_dir()
+    -- Fallback to a stable path in /tmp so rc files can reference it without Lua
+    return "/tmp/conky-lastfm"
 end
 
 -- CONFIG - Use per-launch temp directory
