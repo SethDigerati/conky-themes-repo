@@ -151,7 +151,7 @@ local function fetch_ping_stats()
     local lat_mdev = string.match(latency_output or "", "rtt [^=]+= [^/]+/[^/]+/[^/]+/([0-9.]+)")
     
     if avg then
-        display_data.latency = avg .. " ms ± " .. (lat_mdev or "0") .. " ms"
+        display_data.latency = avg .. "ms ± " .. (lat_mdev or "0") .. "ms"
     else
         display_data.latency = "N/A"
     end
@@ -191,6 +191,11 @@ end
 
 function conky_latency()
     return display_data.latency
+end
+
+-- Expose the LATENCY_TARGET to Conky text
+function conky_latency_target()
+    return LATENCY_TARGET
 end
 
 function conky_isp()
