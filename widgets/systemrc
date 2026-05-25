@@ -38,10 +38,10 @@ conky.config = {
     -- Window properties
     own_window = true,
     own_window_type = 'normal',
-    own_window_transparent = true,
+    own_window_transparent = false,
     own_window_colour = '000000',
     own_window_argb_visual = true,
-    own_window_argb_value = 0,
+    own_window_argb_value = 255,
     own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',
     
     -- Size
@@ -74,14 +74,15 @@ conky.config = {
     color0 = 'white',
     color1 = '#EAEAEA',
     color2 = '#FFE020',
-    color3 = 'blue',
+    color3 = 'black',
     color4 = 'green',
     color5 = 'pink',
 }
 
 conky.text = [[
 ${color2}SYSTEM ${color0}${voffset -2}${hr 1}
-Date: ${time %A, %B %d}${alignr}${time %H:%M}
+${time %A, %B %d}${alignr}
+${time %H:%M}
 OS: ${execi 60 lsb_release -d | cut -f2-}
 Kernel: ${kernel}
 Hostname: ${nodename}
