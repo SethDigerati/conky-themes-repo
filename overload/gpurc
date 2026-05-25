@@ -48,7 +48,7 @@ conky.config = {
     
     -- Misc settings
     stippled_borders = 0,
-    update_interval = 2.0,
+    update_interval = 2,
     uppercase = false,
     use_spacer = 'none',
     temperature_unit = 'celsius',
@@ -78,9 +78,9 @@ conky.config = {
 
 conky.text = [[
 ${color2}GPU${color}${voffset -2}${hr 1}
-${voffset 4}${color1}Model:${color}${alignr}${exec lspci | grep -i vga | cut -d: -f3 | sed 's/^ *//' | head -1}
+${voffset 4}${color1}Model:${alignr}${color}${if_match ${execi 10 bash -c "lspci | grep -i vga | cut -d: -f3 | sed 's/^ *//' | head -1 | wc -m"} > 50}${scroll 50 3 ${execi 10 bash -c "lspci | grep -i vga | cut -d: -f3 | sed 's/^ *//' | head -1"}}${else}${execi 10 bash -c "lspci | grep -i vga | cut -d: -f3 | sed 's/^ *//' | head -1"}${endif}
 ${color1}Driver:${color}${alignr}${exec lsmod | grep -E '^i915|^xe' | awk '{print $1}' | head -1 || echo "Unknown"}
-${color1}Memory Usage:${color}${alignr}${exec cat /proc/meminfo | grep -i shmem | awk '{print int($2/1024)}' | head -1 || echo "0"} / ${exec grep MemTotal /proc/meminfo | awk '{print int($2/1024)}'} MB
+${color1}Memory Usage:${color}${alignr}${exec cat /proc/meminfo | grep -i shmem | awk '{print int($2/1024)}' | head -1 || echo "0"}/${exec grep MemTotal /proc/meminfo | awk '{print int($2/1024)}'} MB
 ${color1}Temperature:${color}${alignr}${exec sensors 2>/dev/null | grep -E "Package|Core|temp1" | head -1 | awk '{print $2}' | sed 's/+//;s/°C.*//' || echo "N/A"}°C
 ${color1}Frequency:${color}${alignr}${exec cat /sys/class/drm/card*/gt_cur_freq_mhz 2>/dev/null | head -1 || echo "N/A"} MHz/${color}${alignr}${exec cat /sys/class/drm/card*/gt_max_freq_mhz 2>/dev/null | head -1 || echo "N/A"} MHz
 ${color1}Driver Version:${color}${alignr}${exec uname -r | cut -d'-' -f1}
