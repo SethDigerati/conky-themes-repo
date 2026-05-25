@@ -65,7 +65,7 @@ conky.config = {
     use_xft = true,
     draw_shades = true,
     xftalpha = 100,
-    font = 'GE Inspira:size=10',
+    font = 'Iosevka:size=10',
     
     -- Colors
     default_color = 'white',
@@ -86,16 +86,16 @@ conky.text = [[
 ${lua update_weather}${color2}WEATHER ${color1}${hr}
 ${lua get_city}${lua get_country}
 ${lua get_date}
-${goto 250}${font GE Inspira:size=12}${lua moon_name}${voffset -5}${font Noto Color Emoji:size=20}${lua moon_icon}${font} ${voffset -20}
-${color2}${font GE Inspira:size=18}${lua get_description}${font}
+${goto 250}${font Iosevka:size=12}${lua moon_name}${voffset -5}${font Iosevka:size=20}${lua moon_icon}${font} ${voffset -20}
+${color2}${font Iosevka:size=18}${lua get_description}${font}
 ${goto 150}${color2}TEMP: ${color1}${lua get_forecast_mintemp}-${lua get_forecast_maxtemp}°C
 ${goto 150}${color2}PRECIPITATION: ${color1}${lua get_precipitation} mm    ${color2}ODDS: ${color1}${lua forecast_pop_1}
 ${goto 150}${color2}HUMIDITY: ${color1}${lua get_humidity}%
 ${goto 150}${color2}PRESSURE: ${color1}${lua get_pressure} hPa
-${goto 150}${color2}WINDS: ${color1}${lua get_wind} km/h${goto 250}${color2} DIRECTION: ${color1}${font DejaVu Sans:size=10}${lua get_wind_dir_icon}${font}${lua get_wind_dir}
+${goto 150}${color2}WINDS: ${color1}${lua get_wind} km/h${goto 250}${color2} DIRECTION: ${color1}${font Iosevka:size=10}${lua get_wind_dir_icon}${font}${lua get_wind_dir}
 ${goto 150}${color2}VISIBILITY: ${color1}${lua get_visibility} km
 ${image /tmp/conky_weather_icon.png -p 5,80 -s 100x100}
-${voffset -55}${goto 80}${color2}${color1}${font GE Inspira:size=25}${lua get_temp}°C${font} 
+${voffset -55}${goto 80}${color2}${color1}${font Iosevka:size=25}${lua get_temp}°C${font} 
 ${color2}5-DAY FORECAST ${color1}${hr}
 ${color2}Day${goto 60}Weather${goto 160}Temp${goto 200}Humid${goto 255}Wind${goto 302}Prec${alignr}Rain%${color1}
 ${voffset -10}${hr}${voffset -5}

@@ -4,6 +4,8 @@
 --  Description: A fork and redesign of teejeetech(teejee2008@gmail.com) original conky theme
 -- **********************************************************************
 
+local CONFIG_DIR = (debug.getinfo(1, "S").source:match("^@(.*/)") or "./")
+
 conky.config = {
     -- Basic settings
     background = true,
@@ -15,7 +17,7 @@ conky.config = {
     border_width = 1,
     draw_borders = false,
     draw_outline = false,
-     
+    
     -- Sampling
     cpu_avg_samples = 5,
     net_avg_samples = 5,
@@ -31,7 +33,7 @@ conky.config = {
     
     -- Placement
     gap_x = 0,
-    gap_y = 680,
+    gap_y = 10,
     
     -- Window properties
     own_window = true,
@@ -44,11 +46,12 @@ conky.config = {
     
     -- Size
     minimum_width = 400,
+    minimum_height = 80,
     maximum_width = 400,
     
     -- Misc settings
     stippled_borders = 0,
-    update_interval = 2.0,
+    update_interval = 1.0,
     uppercase = false,
     use_spacer = 'none',
     temperature_unit = 'celsius',
@@ -69,7 +72,7 @@ conky.config = {
     default_outline_color = 'white',
     default_shade_color = 'black',
     color0 = 'white',
-    color1 = '#FFFFFF',
+    color1 = '#EAEAEA',
     color2 = '#FFE020',
     color3 = 'blue',
     color4 = 'green',
@@ -77,12 +80,16 @@ conky.config = {
 }
 
 conky.text = [[
-${color2}GPU${color}${voffset -2}${hr 1}
-${voffset 4}${color1}Model:${color}${alignr}${exec lspci | grep -i vga | cut -d: -f3 | sed 's/^ *//' | head -1}
-${color1}Driver:${color}${alignr}${exec lsmod | grep -E '^i915|^xe' | awk '{print $1}' | head -1 || echo "Unknown"}
-${color1}Memory Usage:${color}${alignr}${exec cat /proc/meminfo | grep -i shmem | awk '{print int($2/1024)}' | head -1 || echo "0"} / ${exec grep MemTotal /proc/meminfo | awk '{print int($2/1024)}'} MB
-${color1}Temperature:${color}${alignr}${exec sensors 2>/dev/null | grep -E "Package|Core|temp1" | head -1 | awk '{print $2}' | sed 's/+//;s/°C.*//' || echo "N/A"}°C
-${color1}Frequency:${color}${alignr}${exec cat /sys/class/drm/card*/gt_cur_freq_mhz 2>/dev/null | head -1 || echo "N/A"} MHz/${color}${alignr}${exec cat /sys/class/drm/card*/gt_max_freq_mhz 2>/dev/null | head -1 || echo "N/A"} MHz
-${color1}Driver Version:${color}${alignr}${exec uname -r | cut -d'-' -f1}
-${voffset -10}${stippled_hr 1}
+${image ]] .. CONFIG_DIR .. [[assets/archlinux-logo.png -s 300x100} ${voffset 80}
+${color2}SYSTEM ${color0}${voffset -2}${hr 1}
+Date: ${time %A, %B %d}${alignr}${time %H:%M}
+OS: ${execi 60 lsb_release -d | cut -f2-}
+Kernel: ${kernel}
+Hostname: ${nodename}
+DE: ${execi 60 echo "$XDG_CURRENT_DESKTOP"} ${exec cat /etc/os-release | grep "VERSION=" | cut -d '"' -f2}${alignr}Uptime: ${uptime}
+${color2}BATTERY${color}${hr 1}
+Model: ${execi 6000 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'vendor' | awk '{$1=""; print $0;}'}.${execi 6000 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'model' | awk '{$1=""; print $0;}'}, Tech: ${execi 6000 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'technology' | awk '{$1=""; print $0;}'} (${execi 6000 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'energy-full-design' | awk '{$1=""; print $0;}'})
+${battery_bar}
+Status: ${battery} (${execi 2 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'energy:' | awk '{ print $2;}'}/${execi 2 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'energy-full:' | awk '{$1=""; print $0;}'})${alignr}Time left:${battery_time}
+${voffset -300}
 ]]

@@ -65,7 +65,7 @@ conky.config = {
     use_xft = true,
     draw_shades = true,
     xftalpha = 100,
-    font = 'GE Inspira:size=10',
+    font = 'Iosevka:size=10',
     
     -- Colors
     default_color = 'white',
@@ -80,17 +80,6 @@ conky.config = {
 }
 
 conky.text = [[
-${image ]] .. CONFIG_DIR .. [[assets/archlinux-logo.png -s 300x100} ${voffset 80}
-${color2}SYSTEM ${color0}${voffset -2}${hr 1}
-Date: ${time %A, %B %d}${alignr}${time %H:%M}
-OS: ${execi 60 lsb_release -d | cut -f2-}
-Kernel: ${kernel}
-Hostname: ${nodename}
-DE: ${execi 60 echo "$XDG_CURRENT_DESKTOP"} ${exec cat /etc/os-release | grep "VERSION=" | cut -d '"' -f2}${alignr}Uptime: ${uptime}
-${color2}BATTERY${color}${hr 1}
-Model: ${execi 6000 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'vendor' | awk '{$1=""; print $0;}'}.${execi 6000 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'model' | awk '{$1=""; print $0;}'}, Tech: ${execi 6000 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'technology' | awk '{$1=""; print $0;}'} (${execi 6000 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'energy-full-design' | awk '{$1=""; print $0;}'})
-${battery_bar}
-Status: ${battery} (${execi 2 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'energy:' | awk '{ print $2;}'}/${execi 2 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'energy-full:' | awk '{$1=""; print $0;}'})${alignr}Time left:${battery_time}
 ${color2}CPU ${color0}(${acpitemp}°C) ${voffset -2}${hr 1}
 ${cpu}% ${cpubar 5,}
 ${cpugraph 50,400 ffff00 ff0000 -t}${voffset -9}
