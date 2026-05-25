@@ -81,7 +81,7 @@ conky.config = {
 
 conky.text = [[
 ${color2}SYSTEM ${color0}${voffset -2}${hr 1}
-${time %A, %B %d}${alignr}
+${font Iosevka:size=15}${time %A %d}${font}
 ${time %H:%M}
 OS: ${execi 60 lsb_release -d | cut -f2-}
 Kernel: ${kernel}

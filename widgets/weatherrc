@@ -109,4 +109,3 @@ ${voffset -10}${hr}${voffset -5}
 ${color4}Last Update: ${lua get_update_time}${color}
 ${voffset -10}${stippled_hr}${font}
 ]];
-
