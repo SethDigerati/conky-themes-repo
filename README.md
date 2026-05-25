@@ -155,4 +155,3 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 ## Acknowledgments
 
 - **[TeejeeTech](http://teejeetech.blogspot.in/)** - Original Overload theme inspiration  
-
