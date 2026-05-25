@@ -94,7 +94,7 @@ Bitrate: ${wireless_bitrate ${template0}}${alignr}Signal: ${wireless_link_qual_p
 ISP:${alignr}${lua conky_isp}
 Latency (${lua conky_latency_target}):${alignr}${lua conky_latency}
 Loss: ${lua conky_loss}%${alignr}${color1}Jitter: ${color0}${lua conky_jitter}ms
-Total connections:${tcp_portmon 1 61000 count}${goto 200} Inbound:${tcp_portmon 1 32767 count}${alignr} Outbound:${tcp_portmon 32768 61000 count}
+Total connections: ${tcp_portmon 1 61000 count}${goto 200} Inbound: ${tcp_portmon 1 32767 count}${alignr} Outbound: ${tcp_portmon 32768 61000 count}
 ${color2}Downloaded: ${color0}${totaldown ${template0}}${alignr}${color2}Uploaded:${color0}${totalup ${template0}}
 ${goto 20}Downspeed: ${color2}${downspeedf ${template0}}${color0}KiB/s
 ${downspeedgraph ${template0} 50,400 ffff00 ff0000 -t}${voffset -15}
