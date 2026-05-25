@@ -80,7 +80,6 @@ conky.config = {
 }
 
 conky.text = [[
-${image ]] .. CONFIG_DIR .. [[assets/archlinux-logo.png -s 300x100} ${voffset 80}
 ${color2}SYSTEM ${color0}${voffset -2}${hr 1}
 Date: ${time %A, %B %d}${alignr}${time %H:%M}
 OS: ${execi 60 lsb_release -d | cut -f2-}

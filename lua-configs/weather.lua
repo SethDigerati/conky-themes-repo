@@ -16,7 +16,8 @@ package.path = package.path .. ";" .. script_dir .. "../?.lua;" .. script_dir ..
 local config = require("api-config").weather
 
 -- Icons directory - absolute path
-local icons_dir = script_dir .. "assets/icons/"
+-- Icons directory (relative to repository root)
+local icons_dir = script_dir .. "../assets/icons/"
 
 -- Weather description to MET Norway icon name mapping
 local icon_mapping = {

@@ -78,7 +78,7 @@ conky.config = {
     color4 = 'green',
     color5 = 'pink',
 
-    lua_load = CONFIG_DIR .. 'weather.lua',
+    lua_load = CONFIG_DIR .. '../lua-configs/weather.lua',
     lua_draw_hook_post = 'main',
 }
 
