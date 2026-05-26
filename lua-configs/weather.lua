@@ -1,19 +1,23 @@
 -- Weather Lua Script for Conky
--- Uses OpenWeatherMap API with automatic location detection
+-- Uses cached data from /tmp/conky/weather/ written by data.lua
 -- Uses lua_draw_hook for image rendering with Cairo
 -- Icons stored locally in assets/icons/
 
 -- Cairo is loaded by conky automatically when lua_draw_hook is used
 
--- Load the API configuration
+-- Load shared helpers and cache constants
 local script_dir = debug.getinfo(1, "S").source:match("^@(.*/)")
-if not script_dir then
-    -- Fallback: assume it's being run from overload directory
-    script_dir = "./"
-end
-package.path = package.path .. ";" .. script_dir .. "../?.lua;" .. script_dir .. "../config/?.lua"
+if not script_dir then script_dir = "./" end
 
-local config = require("api-config").weather
+local DATA_BASE = "/tmp/conky"
+
+local function read_file(path)
+    local f = io.open(path, "r")
+    if not f then return nil end
+    local c = f:read("*a")
+    f:close()
+    return c
+end
 
 -- Icons directory - absolute path
 -- Icons directory (relative to repository root)
@@ -153,25 +157,45 @@ local wind_arrows = {
     ["W"] = "→", ["WNW"] = "↘", ["NW"] = "↘", ["NNW"] = "↘"
 }
 
--- Helper: execute shell command
-local function exec_command(cmd)
-    local handle = io.popen(cmd)
-    if not handle then return nil end
-    local result = handle:read("*a")
-    handle:close()
-    return result
-end
-
--- Check for internet connectivity
-local function check_internet()
-    -- Try to reach a reliable endpoint with short timeout
-    local result = exec_command("curl -s --max-time 3 -o /dev/null -w '%{http_code}' http://ip-api.com/json/ 2>/dev/null")
-    if result and result:match("200") then
-        return true
+-- Read raw cached weather data from /tmp/conky/weather/
+local function read_weather_cache()
+    -- Location
+    local loc_data = read_file(DATA_BASE .. "/weather/location.json")
+    if loc_data then
+        weather_data.lat = loc_data:match('"lat"%s*:%s*"([^"]*)"') or weather_data.lat
+        weather_data.lon = loc_data:match('"lon"%s*:%s*"([^"]*)"') or weather_data.lon
+        weather_data.city = loc_data:match('"city"%s*:%s*"([^"]*)"') or weather_data.city
+        weather_data.country = loc_data:match('"country"%s*:%s*"([^"]*)"') or weather_data.country
     end
-    -- Fallback: try ping
-    local ping_result = os.execute("ping -c 1 -W 2 1.1.1.1 >/dev/null 2>&1")
-    return ping_result == 0 or ping_result == true
+
+    -- Current weather
+    local current = read_file(DATA_BASE .. "/weather/current.json")
+    if current and current ~= "" then
+        weather_data.current.temp = parse_nested_json(current, "main", "temp") or weather_data.current.temp
+        weather_data.current.temp_min = parse_nested_json(current, "main", "temp_min") or weather_data.current.temp_min
+        weather_data.current.temp_max = parse_nested_json(current, "main", "temp_max") or weather_data.current.temp_max
+        weather_data.current.humidity = parse_nested_json(current, "main", "humidity") or weather_data.current.humidity
+        weather_data.current.pressure = parse_nested_json(current, "main", "pressure") or weather_data.current.pressure
+        local visibility = parse_json_value(current, "visibility") or "10000"
+        weather_data.current.visibility_km = string.format("%.1f", (tonumber(visibility) or 10000) / 1000)
+        weather_data.current.wind_speed = parse_nested_json(current, "wind", "speed") or weather_data.current.wind_speed
+        weather_data.current.wind_deg = tonumber(parse_nested_json(current, "wind", "deg")) or weather_data.current.wind_deg
+        weather_data.current.wind_dir = deg_to_direction(weather_data.current.wind_deg)
+        local weather_array = parse_array_item(current, "weather", 1)
+        if weather_array then
+            weather_data.current.description = parse_json_value(weather_array, "description") or weather_data.current.description
+            weather_data.current.icon = parse_json_value(weather_array, "icon") or weather_data.current.icon
+        end
+        weather_data.current.icon_path = get_icon_path(weather_data.current.description, weather_data.current.icon)
+        local rain = current:match('"rain"%s*:%s*%{[^}]*"1h"%s*:%s*([%d%.]+)')
+        weather_data.current.precipitation = rain or "0"
+    end
+
+    -- Forecast
+    local forecast = read_file(DATA_BASE .. "/weather/forecast.json")
+    if forecast and forecast ~= "" then
+        parse_forecast_cached(forecast)
+    end
 end
 
 -- Determine if it's day or night based on icon code suffix or time
@@ -244,21 +268,8 @@ local function parse_array_item(json, array_key, index)
     return nil
 end
 
--- Get location from IP
-local function get_location()
-    if weather_data.lat and weather_data.lon then
-        return weather_data.lat, weather_data.lon
-    end
-    local geo_data = exec_command('curl -s "' .. config.GEO_URL .. '"')
-    if geo_data then
-        weather_data.lat = parse_json_value(geo_data, "lat")
-        weather_data.lon = parse_json_value(geo_data, "lon")
-        weather_data.city = parse_json_value(geo_data, "city")
-        weather_data.country = parse_json_value(geo_data, "country")
-        return weather_data.lat, weather_data.lon
-    end
-    return nil, nil
-end
+-- No longer fetches location via curl; data.lua handles it.
+-- Location is read from cached files by read_weather_cache().
 
 -- Calculate moon phase
 local function get_moon_phase(timestamp)
@@ -271,50 +282,10 @@ local function get_moon_phase(timestamp)
     return moon_phases[phase_index]
 end
 
--- Fetch current weather
-local function fetch_current_weather(lat, lon)
-    local url = config.build_current_url(lat, lon)
-    local data = exec_command('curl -s "' .. url .. '"')
-    if not data or data == "" then return false end
-    
-    weather_data.current.temp = parse_nested_json(data, "main", "temp") or "N/A"
-    weather_data.current.temp_min = parse_nested_json(data, "main", "temp_min") or "N/A"
-    weather_data.current.temp_max = parse_nested_json(data, "main", "temp_max") or "N/A"
-    weather_data.current.humidity = parse_nested_json(data, "main", "humidity") or "N/A"
-    weather_data.current.pressure = parse_nested_json(data, "main", "pressure") or "N/A"
-    
-    local visibility = parse_json_value(data, "visibility") or "10000"
-    weather_data.current.visibility_km = string.format("%.1f", (tonumber(visibility) or 10000) / 1000)
-    
-    weather_data.current.wind_speed = parse_nested_json(data, "wind", "speed") or "0"
-    weather_data.current.wind_deg = tonumber(parse_nested_json(data, "wind", "deg")) or 0
-    weather_data.current.wind_dir = deg_to_direction(weather_data.current.wind_deg)
-    
-    local weather_array = parse_array_item(data, "weather", 1)
-    if weather_array then
-        weather_data.current.description = parse_json_value(weather_array, "description") or "Unknown"
-        weather_data.current.icon = parse_json_value(weather_array, "icon") or "01d"
-    end
-    
-    weather_data.current.icon_path = get_icon_path(weather_data.current.description, weather_data.current.icon)
-    
-    -- Update symlink for conky ${image} to use
-    os.execute('ln -sf "' .. weather_data.current.icon_path .. '" /tmp/conky_weather_icon.png')
-    
-    local rain = data:match('"rain"%s*:%s*%{[^}]*"1h"%s*:%s*([%d%.]+)')
-    weather_data.current.precipitation = rain or "0"
-    
-    weather_data.moon = get_moon_phase(os.time())
-    weather_data.update_time = os.date("%Y-%m-%d %H:%M")
-    weather_data.current_date = os.date("%A, %B %d, %Y")
-    
-    return true
-end
+-- Current weather is now read from cached files by read_weather_cache().
 
--- Fetch forecast
-local function fetch_forecast(lat, lon)
-    local url = config.build_forecast_url(lat, lon)
-    local data = exec_command('curl -s "' .. url .. '"')
+-- Parse forecast from cached data (data.lua writes this)
+local function parse_forecast_cached(data)
     if not data or data == "" then return false end
     
     weather_data.forecast = {}
@@ -471,24 +442,26 @@ local function fetch_forecast(lat, lon)
     return true
 end
 
+-- Called to update icon symlink after cache read
+local function update_icon_symlink()
+    if weather_data.current.icon_path then
+        os.execute('ln -sf "' .. weather_data.current.icon_path .. '" /tmp/conky/weather/weather_icon.png')
+    end
+end
+
 -- ============ MAIN UPDATE FUNCTION ============
 function conky_update_weather()
     local current_time = os.time()
-    if current_time - weather_data.last_update < config.UPDATE_INTERVAL then
+    if current_time - weather_data.last_update < 120 then
         return ""
     end
-    
-    -- Check for internet connectivity first
-    if not check_internet() then
-        return ""  -- No internet, skip update but keep existing data
-    end
-    
-    local lat, lon = get_location()
-    if not lat or not lon then return "" end
-    
-    fetch_current_weather(lat, lon)
-    fetch_forecast(lat, lon)
-    
+
+    read_weather_cache()
+    update_icon_symlink()
+
+    weather_data.moon = get_moon_phase(os.time())
+    weather_data.update_time = os.date("%Y-%m-%d %H:%M")
+    weather_data.current_date = os.date("%A, %B %d, %Y")
     weather_data.last_update = current_time
     return ""
 end

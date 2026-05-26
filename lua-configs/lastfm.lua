@@ -123,7 +123,7 @@ local function resolve_data_dir()
     end
 
     -- Fallback to a stable path in /tmp so rc files can reference it without Lua
-    return "/tmp/conky-lastfm"
+    return "/tmp/conky/lastfm"
 end
 
 -- CONFIG - Use per-launch temp directory

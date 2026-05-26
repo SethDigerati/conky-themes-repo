@@ -19,11 +19,8 @@ overload/weather_api_config.lua
 # ============================================
 # Cache & Runtime Files (user-specific data)
 # ============================================
-# XDG Runtime directory caches (contains personal listening history, weather data)
-/tmp/conky_cache*/
-/tmp/lastfm*/
-/tmp/weatherapi*
-/tmp/conky_weather_icon.png
+# Central data cache (contains personal listening history, weather data, sensor readings)
+/tmp/conky/
 
 # User cache directory (contains debug logs, cache files, personal data)
 ~/.cache/conky/
