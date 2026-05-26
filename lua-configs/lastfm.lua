@@ -89,9 +89,56 @@ local function json_encode(t)
     return "{}"
 end
 
--- Setup package path to find api-config.lua in parent/config directory
-local api_config = require("api-config")
-local api = api_config.lastfm
+-- Read config from .env at repo root
+local function read_env(target_key)
+    local env_path = script_dir .. "../.env"
+    local f = io.open(env_path, "r")
+    if not f then return nil end
+    for raw_line in f:lines() do
+        local l = raw_line:gsub("#.*$", ""):gsub("^%s+", ""):gsub("%s+$", "")
+        if l ~= "" then
+            local k, v = l:match("^([^=]+)=(.+)$")
+            if k and k == target_key then
+                v = v:gsub('^"', ''):gsub('"$', ''):gsub("^'", ''):gsub("'$", '')
+                f:close()
+                return v
+            end
+        end
+    end
+    f:close()
+    return nil
+end
+
+local LASTFM_API_KEY = read_env("LASTFM_API_KEY") or os.getenv("LASTFM_API_KEY") or ""
+local LASTFM_USERNAME = read_env("LASTFM_USERNAME") or os.getenv("LASTFM_USERNAME") or ""
+
+local LASTFM_BASE_URL = "https://ws.audioscrobbler.com/2.0/"
+local LASTFM_METHODS = {
+    RECENT_TRACKS = "user.getrecenttracks",
+    USER_TRACK_SCROBBLES = "user.gettrackscrobbles",
+    ARTIST_INFO = "artist.getinfo",
+    TRACK_INFO = "track.getInfo",
+}
+
+local function lastfm_build_url(method, params)
+    local parts = {}
+    table.insert(parts, "method=" .. method)
+    table.insert(parts, "api_key=" .. LASTFM_API_KEY)
+    table.insert(parts, "format=json")
+    if params then
+        for k, v in pairs(params) do
+            table.insert(parts, k .. "=" .. v)
+        end
+    end
+    return LASTFM_BASE_URL .. "?" .. table.concat(parts, "&")
+end
+
+local api = {
+    USERNAME = LASTFM_USERNAME,
+    API_KEY = LASTFM_API_KEY,
+    METHODS = LASTFM_METHODS,
+    build_url = lastfm_build_url,
+}
 
 local function temp_base_dir()
     return os.getenv("TMPDIR") or os.getenv("XDG_RUNTIME_DIR") or "/tmp"
