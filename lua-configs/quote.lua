@@ -38,6 +38,13 @@ local function run(cmd)
     return s
 end
 
+local function exec_ok(cmd)
+    local ok = os.execute(cmd)
+    if type(ok) == "boolean" then return ok end
+    if type(ok) == "number" then return ok == 0 end
+    return false
+end
+
 -- Word-wrap helpers
 local function wrap_paragraph(par, width)
     local parts = {}
@@ -108,20 +115,37 @@ local function fetch_quote()
     local q = raw:match('"q"%s*:%s*"(.-)"')
     local a = raw:match('"a"%s*:%s*"(.-)"')
     local i = raw:match('"i"%s*:%s*"(.-)"')
+    if i then i = i:gsub('\\/', '/') end
 
     if q then
         local img_url = i or ""
         if img_url ~= "" then
             run(CURL .. ' -s -S --connect-timeout 5 --max-time 10 -o "' .. DATA_BASE .. '/quote/author.png"' .. ' "' .. img_url .. '" 2>/dev/null')
         end
-        -- Fallback avatar
+        -- Validate downloaded image (must be > 100 bytes, else discard)
         local author_file = DATA_BASE .. "/quote/author.png"
+        local ok = false
         local f_img = io.open(author_file, "r")
-        if not f_img and a then
+        if f_img then
+            local size = f_img:seek("end")
+            f_img:close()
+            if size >= 100 then ok = true else os.remove(author_file) end
+        end
+        -- Fallback avatar if no valid image
+        if not ok and a then
             local safe = a:gsub("([^%w%-%_%.%~ ])", function(c) return string.format("%%%02X", string.byte(c)) end):gsub(" ", "+")
             run(CURL .. ' -s -S --connect-timeout 5 --max-time 10 -o "' .. author_file .. '"' .. ' "https://ui-avatars.com/api/?name=' .. safe .. '&size=256&background=000000&color=ffffff&format=png" 2>/dev/null')
-        elseif f_img then
-            f_img:close()
+            f_img = io.open(author_file, "r")
+            if f_img then
+                local size = f_img:seek("end")
+                f_img:close()
+                if size >= 100 then ok = true end
+            end
+        end
+        -- Apply left-edge fade transparency via ImageMagick (no-op if not installed)
+        if ok then
+            local fade_cmd = 'magick "' .. author_file .. '" -alpha on -type TrueColorAlpha \\( +clone -alpha extract -fx "min(1,i/(w*0.3))" \\) -compose copy_opacity -composite "png:' .. author_file .. '.tmp" 2>/dev/null && mv "' .. author_file .. '.tmp" "' .. author_file .. '" 2>/dev/null'
+            exec_ok(fade_cmd)
         end
     end
 end
