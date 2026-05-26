@@ -251,7 +251,6 @@ if not exec_ok("mkdir -p \"" .. DATA_DIR .. "\"") then
     end
 end
 log("Starting Last.fm script, caching to: " .. DATA_DIR)
-log("Using api-config from: " .. tostring(api_config.env_path or "(unknown)"))
 log("Last.fm USERNAME=" .. tostring(api.USERNAME) .. " API_KEY=" .. ((api.API_KEY and api.API_KEY ~= "" and api.API_KEY ~= "YOUR_API_KEY_HERE") and "present" or "missing"))
 log("curl binary: " .. tostring(curl))
 if json_backend then
@@ -723,7 +722,7 @@ function conky_nowplaying1()
     if status == "Now Playing" then
         return "▶ Playing"
     elseif status == "Paused" then
-        return "I I Paused"
+        return "⏸ Paused"
     else
         return ""  -- Return empty string when not playing
     end
