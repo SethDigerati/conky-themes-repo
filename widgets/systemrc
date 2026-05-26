@@ -79,6 +79,7 @@ conky.config = {
     color5 = 'pink',
 
     lua_load = CONFIG_DIR .. '../lua-configs/data.lua',
+    lua_draw_hook_post = 'conky_update_data',
 }
 
 conky.text = [[
