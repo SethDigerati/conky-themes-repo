@@ -1,5 +1,5 @@
 -- Weather Lua Script for Conky
--- Uses cached data from /tmp/conky/weather/ written by data.lua
+-- Fetches from OpenWeatherMap API, caches to /tmp/conky/weather/
 -- Uses lua_draw_hook for image rendering with Cairo
 -- Icons stored locally in assets/icons/
 
@@ -18,6 +18,56 @@ local function read_file(path)
     f:close()
     return c
 end
+
+local function ensure_dir(path)
+    os.execute("mkdir -p \"" .. path .. "\" 2>/dev/null")
+end
+
+local function write_file(path, content)
+    local tmp = path .. ".tmp"
+    local f = io.open(tmp, "w")
+    if not f then return false end
+    f:write(content)
+    f:close()
+    os.rename(tmp, path)
+    return true
+end
+
+local function run(cmd)
+    local f = io.popen(cmd)
+    if not f then return "" end
+    local s = f:read("*a")
+    f:close()
+    return s
+end
+
+local function read_env(target_key)
+    local env_path = script_dir .. "../.env"
+    local f = io.open(env_path, "r")
+    if not f then return nil end
+    for raw_line in f:lines() do
+        local l = raw_line:gsub("#.*$", ""):gsub("^%s+", ""):gsub("%s+$", "")
+        if l ~= "" then
+            local k, v = l:match("^([^=]+)=(.+)$")
+            if k and k == target_key then
+                v = v:gsub('^"', ''):gsub('"$', ''):gsub("^'", ''):gsub("'$", '')
+                f:close()
+                return v
+            end
+        end
+    end
+    f:close()
+    return nil
+end
+
+-- Weather API config (from .env or environment)
+local WEATHER_API_KEY = read_env("WEATHER_API_KEY") or os.getenv("WEATHER_API_KEY") or ""
+local WEATHER_CITY = read_env("WEATHER_NAME") or os.getenv("WEATHER_NAME") or ""
+local WEATHER_UNITS = read_env("WEATHER_UNITS") or os.getenv("WEATHER_UNITS") or "metric"
+local OWM_BASE = "https://api.openweathermap.org/data/2.5"
+local CURL = "/usr/bin/curl"
+local WEATHER_TTL = 600
+local last_weather_fetch = 0
 
 -- Icons directory - absolute path
 -- Icons directory (relative to repository root)
@@ -268,9 +318,6 @@ local function parse_array_item(json, array_key, index)
     return nil
 end
 
--- No longer fetches location via curl; data.lua handles it.
--- Location is read from cached files by read_weather_cache().
-
 -- Calculate moon phase
 local function get_moon_phase(timestamp)
     local known_new_moon = 947182440
@@ -282,9 +329,7 @@ local function get_moon_phase(timestamp)
     return moon_phases[phase_index]
 end
 
--- Current weather is now read from cached files by read_weather_cache().
-
--- Parse forecast from cached data (data.lua writes this)
+-- Parse forecast from cached OpenWeatherMap data
 local function parse_forecast_cached(data)
     if not data or data == "" then return false end
     
@@ -449,6 +494,39 @@ local function update_icon_symlink()
     end
 end
 
+-- ============ WEATHER API FETCHER ============
+local function fetch_weather_data()
+    local now = os.time()
+    if now - last_weather_fetch < WEATHER_TTL then return end
+    if WEATHER_API_KEY == "" or WEATHER_CITY == "" then return end
+    last_weather_fetch = now
+
+    ensure_dir(DATA_BASE .. "/weather")
+
+    local function owm_fetch(endpoint)
+        local url = OWM_BASE .. "/" .. endpoint .. "?q=" .. WEATHER_CITY .. "&appid=" .. WEATHER_API_KEY .. "&units=" .. WEATHER_UNITS
+        return run(CURL .. ' -s -S --connect-timeout 5 --max-time 10 "' .. url .. '" 2>/dev/null')
+    end
+
+    -- Fetch current weather
+    local current = owm_fetch("weather")
+    if current and current ~= "" and current:match('"cod"%s*:%s*200') then
+        write_file(DATA_BASE .. "/weather/current.json", current)
+        local city = current:match('"name"%s*:%s*"([^"]*)"') or WEATHER_CITY
+        local country = current:match('"country"%s*:%s*"([^"]*)"') or ""
+        local lat = current:match('"lat"%s*:%s*([%d%.%-]+)') or ""
+        local lon = current:match('"lon"%s*:%s*([%d%.%-]+)') or ""
+        write_file(DATA_BASE .. "/weather/location.json",
+            '{\n  "lat": "' .. lat .. '",\n  "lon": "' .. lon .. '",\n  "city": "' .. city .. '",\n  "country": "' .. country .. '"\n}')
+    end
+
+    -- Fetch 5-day forecast
+    local forecast = owm_fetch("forecast")
+    if forecast and forecast ~= "" and forecast:match('"cod"%s*:%s*"200"') then
+        write_file(DATA_BASE .. "/weather/forecast.json", forecast)
+    end
+end
+
 -- ============ MAIN UPDATE FUNCTION ============
 function conky_update_weather()
     local current_time = os.time()
@@ -456,6 +534,7 @@ function conky_update_weather()
         return ""
     end
 
+    fetch_weather_data()
     read_weather_cache()
     update_icon_symlink()
 
