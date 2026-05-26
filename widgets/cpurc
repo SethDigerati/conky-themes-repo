@@ -80,7 +80,7 @@ conky.config = {
 }
 
 conky.text = [[
-${color2}CPU ${color0}(${acpitemp}°C) ${voffset -2}${hr 1}
+${color2}CPU ${color0}-(${acpitemp}°C) ${voffset -2}${hr 1}
 ${cpu}% ${cpubar 5,}
 ${cpugraph 50,400 ffff00 ff0000 -t}${voffset -9}
 ${goto 30}${freq 0}MHz ${goto 130}${freq 1}MHz${goto 230}${freq 2}MHz ${goto 330}${freq 3}MHz${voffset 80}
