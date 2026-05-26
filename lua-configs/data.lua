@@ -128,6 +128,20 @@ end
 
 local static_cache = {}
 
+local function find_battery()
+    local p = io.popen("ls /sys/class/power_supply/ 2>/dev/null")
+    if not p then return nil end
+    for entry in p:lines() do
+        local typ = read_sys("/sys/class/power_supply/" .. entry .. "/type")
+        if typ and typ:match("Battery") then
+            p:close()
+            return "/sys/class/power_supply/" .. entry
+        end
+    end
+    p:close()
+    return nil
+end
+
 local function read_sys(path)
     local f = io.open(path, "r")
     if not f then return nil end
@@ -182,12 +196,38 @@ local function collect_temps()
         end
         hwmon_ls:close()
     end
+    -- Fallback: thermal zones (common on systems without hwmon)
+    if #temps == 0 then
+        local tz_ls = io.popen("ls /sys/class/thermal/ 2>/dev/null")
+        if tz_ls then
+            for entry in tz_ls:lines() do
+                local zone = entry:match("^thermal_zone(%d+)$")
+                if zone then
+                    local raw = read_sys("/sys/class/thermal/" .. entry .. "/temp")
+                    local typ = read_sys("/sys/class/thermal/" .. entry .. "/type")
+                    if raw and typ then
+                        table.insert(temps, {
+                            sensor = entry,
+                            name = typ:gsub("%s+$", ""),
+                            label = typ:gsub("%s+$", ""),
+                            temp_c = tonumber(raw) / 1000,
+                        })
+                    end
+                end
+            end
+            tz_ls:close()
+        end
+    end
     write_json("system", "temps.json", temps)
 end
 
 local function collect_battery()
     local bat = {}
-    local base = "/sys/class/power_supply/BAT0"
+    local base = find_battery()
+    if not base then
+        write_json("system", "battery.json", bat)
+        return
+    end
     -- Try energy_* (µWh) first, fall back to charge_* (µAh) for older batteries
     local pairs = {
         {"energy_now", "charge_now"},
@@ -198,9 +238,20 @@ local function collect_battery()
         local val = read_sys(base .. "/" .. pair[1]) or read_sys(base .. "/" .. pair[2])
         if val then bat[pair[1]] = val:gsub("%s+$", "") end
     end
-    for _, f in ipairs({"power_now", "status", "technology"}) do
+    for _, f in ipairs({"status", "technology"}) do
         local val = read_sys(base .. "/" .. f)
         if val then bat[f] = val:gsub("%s+$", "") end
+    end
+    -- Power: direct power_now, or compute from current_now * voltage_now
+    local power = read_sys(base .. "/power_now")
+    if power then
+        bat.power_now = power:gsub("%s+$", "")
+    else
+        local current = read_sys(base .. "/current_now")
+        local voltage = read_sys(base .. "/voltage_now")
+        if current and voltage then
+            bat.power_now = tostring(math.floor(tonumber(current) * tonumber(voltage) / 1000000))
+        end
     end
     write_json("system", "battery.json", bat)
 end
@@ -209,9 +260,22 @@ local function gpu_card()
     local p = io.popen("ls /sys/class/drm/ 2>/dev/null")
     if not p then return "/sys/class/drm/card0" end
     for f in p:lines() do
-        if f:match("^card%d+$") and read_sys("/sys/class/drm/" .. f .. "/gt_cur_freq_mhz") then
-            p:close()
-            return "/sys/class/drm/" .. f
+        if f:match("^card%d+$") then
+            local base = "/sys/class/drm/" .. f
+            -- Check for known GPU frequency files (driver-specific)
+            if read_sys(base .. "/gt_cur_freq_mhz")
+                or read_sys(base .. "/gt_act_freq_mhz")
+                or read_sys(base .. "/device/pp_dpm_sclk")
+            then
+                p:close()
+                return base
+            end
+            -- Fallback: check if it's a known GPU vendor
+            local vendor = read_sys(base .. "/device/vendor")
+            if vendor and vendor:match("^0x(8086|1002|10de|1ae0)") then
+                p:close()
+                return base
+            end
         end
     end
     p:close()
@@ -220,8 +284,13 @@ end
 
 local function collect_gpu()
     local card = gpu_card()
-    local cur = read_sys(card .. "/gt_cur_freq_mhz") or ""
-    local max = read_sys(card .. "/gt_max_freq_mhz") or ""
+    -- Try Intel frequency files, fall back to AMD/NVIDIA alternatives
+    local cur = read_sys(card .. "/gt_cur_freq_mhz")
+        or read_sys(card .. "/gt_act_freq_mhz")
+        or read_sys(card .. "/device/pp_dpm_sclk") or ""
+    local max = read_sys(card .. "/gt_max_freq_mhz")
+        or read_sys(card .. "/gt_RP0_freq_mhz")
+        or read_sys(card .. "/device/pp_dpm_sclk") or ""
     local shmem = 0
     local meminfo = read_file("/proc/meminfo")
     if meminfo then
@@ -239,16 +308,29 @@ local function collect_static()
     last_fetch.static = os.time()
 
     local model = run("lspci 2>/dev/null | grep -i vga | cut -d: -f3 | sed 's/^ *//' | head -1"):gsub("%s+$", "")
-    local driver = run("lsmod 2>/dev/null | grep -E '^i915|^xe' | awk '{print $1}' | head -1"):gsub("%s+$", "")
+    if model == "" then
+        -- Fallback: read PCI vendor/device from DRM sysfs
+        local card = gpu_card()
+        local vendor = read_sys(card .. "/device/vendor")
+        local device = read_sys(card .. "/device/device")
+        if vendor and device then
+            model = ("GPU %s:%s"):format(vendor:gsub("^0x", ""), device:gsub("^0x", ""))
+        end
+    end
+    local driver = run("ls /sys/bus/pci/drivers/ 2>/dev/null | grep -E 'i915|xe|amdgpu|nouveau|nvidia' | head -1"):gsub("%s+$", "")
+    if driver == "" then
+        driver = run("lsmod 2>/dev/null | grep -E '^i915|^xe|^amdgpu|^nouveau|^nvidia' | awk '{print $1}' | head -1"):gsub("%s+$", "")
+    end
     local kernel = run("uname -r 2>/dev/null | cut -d'-' -f1"):gsub("%s+$", "")
     local mem_total = 0
     local meminfo = read_file("/proc/meminfo")
     if meminfo then mem_total = tonumber(meminfo:match("MemTotal:%s+(%d+)")) or 0 end
 
     -- Battery static info
-    local bat_tech = read_sys("/sys/class/power_supply/BAT0/technology") or "N/A"
-    local bat_design = read_sys("/sys/class/power_supply/BAT0/energy_full_design")
-        or read_sys("/sys/class/power_supply/BAT0/charge_full_design") or "0"
+    local bat_base = find_battery()
+    local bat_tech = bat_base and read_sys(bat_base .. "/technology") or "N/A"
+    local bat_design = bat_base and (read_sys(bat_base .. "/energy_full_design")
+        or read_sys(bat_base .. "/charge_full_design")) or "0"
 
     static_cache = {
         gpu_model = model ~= "" and model or "N/A",
@@ -285,10 +367,49 @@ end
 -- ============================================================
 
 local function collect_storage()
-    local raw = run("lsblk -ro NAME,SIZE,TYPE,MOUNTPOINTS 2>/dev/null | "
+    local raw = ""
+    -- Primary: lsblk (available on most Linux systems)
+    local lsblk = run("command -v lsblk 2>/dev/null && lsblk -ro NAME,SIZE,TYPE,MOUNTPOINTS 2>/dev/null | "
         .. "awk '$3==\"disk\"||$3==\"rom\"{print \"─\"$1\"-------(\"$2\")\"}; "
         .. "$3==\"part\"{mnt=$4; if(length(mnt)>20) mnt=substr(mnt,1,17) \"...\"; "
         .. "print \"     └\"$1\"-----(\"$2\")_\" mnt}'")
+    if lsblk ~= "" and lsblk:match("%S") then
+        raw = lsblk
+    else
+        -- Fallback: parse /proc/partitions + /proc/mounts
+        local parts = read_file("/proc/partitions")
+        if parts then
+            local mounts = read_file("/proc/mounts") or ""
+            local mount_map = {}
+            for line in mounts:gmatch("[^\n]+") do
+                local dev, mnt = line:match("^(/dev/%S+)%s+(%S+)")
+                if dev and mnt then mount_map[dev:match("/([^/]+)$")] = mnt end
+            end
+            local lines = {}
+            for line in parts:gmatch("[^\n]+") do
+                local name, blocks = line:match("^%s*%d+%s+%d+%s+(%d+)%s+(%S+)")
+                if name and blocks then
+                    local sz = tonumber(blocks) * 1024
+                    local size_str
+                    if sz >= 1073741824 then
+                        size_str = string.format("%.1fG", sz / 1073741824)
+                    elseif sz >= 1048576 then
+                        size_str = string.format("%.0fM", sz / 1048576)
+                    else
+                        size_str = string.format("%.0fK", sz / 1024)
+                    end
+                    local mnt = mount_map[name] or (name:match("swap") and "[SWAP]" or "")
+                    if mnt ~= "" and #mnt > 22 then mnt = mnt:sub(1, 19) .. "..." end
+                    if mnt ~= "" then
+                        table.insert(lines, "     └" .. name .. "-----(" .. size_str .. ")_" .. mnt)
+                    else
+                        table.insert(lines, "─" .. name .. "-------(" .. size_str .. ")")
+                    end
+                end
+            end
+            raw = table.concat(lines, "\n")
+        end
+    end
     ensure_dir(DATA_BASE .. "/system")
     write_file(DATA_BASE .. "/system/storage.txt", raw)
 end
@@ -362,15 +483,18 @@ end
 function conky_gpu_temp()
     local temps = read_file(DATA_BASE .. "/system/temps.json")
     if not temps then return "N/A" end
-    for entry, line in temps:gmatch('"label"%s*:%s*"([^"]+)"[^}]+"temp_c"%s*:%s*([%d%.]+)') do
-        local el = entry:lower()
-        if el:find("gpu") or el:find("amdgpu") or el:find("i915") then return line end
+    for entry in temps:gmatch('{[^}]+}') do
+        local label = entry:match('"label"%s*:%s*"([^"]+)"')
+        local name = entry:match('"name"%s*:%s*"([^"]+)"')
+        local temp = entry:match('"temp_c"%s*:%s*([%d%.]+)')
+        if temp then
+            local l, n = (label or ""):lower(), (name or ""):lower()
+            if l:find("gpu") or l:find("amdgpu") or l:find("i915")
+                or n:find("amdgpu") or n:find("i915") or n:find("nouveau") or n:find("nvidia") then
+                return temp
+            end
+        end
     end
-    for entry, line in temps:gmatch('"name"%s*:%s*"([^"]+)"[^}]+"temp_c"%s*:%s*([%d%.]+)') do
-        local el = entry:lower()
-        if el:find("amdgpu") or el:find("i915") or el:find("nouveau") or el:find("nvidia") then return line end
-    end
-    -- Fallback: first die sensor
     local die = temps:match('"temp_c"%s*:%s*([%d%.]+)')
     return die or "N/A"
 end
@@ -425,16 +549,16 @@ end
 function conky_network_temp()
     local temps = read_file(DATA_BASE .. "/system/temps.json")
     if not temps then return "N/A" end
-    for label, temp in temps:gmatch('"label"%s*:%s*"([^"]+)"[^}]+"temp_c"%s*:%s*([%d%.]+)') do
-        local l = label:lower()
-        if l:find("wifi") or l:find("wl") or l:find("network") or l:find("enp") or l:find("eth") or l:find("mac") then
-            return temp
-        end
-    end
-    for name, temp in temps:gmatch('"name"%s*:%s*"([^"]+)"[^}]+"temp_c"%s*:%s*([%d%.]+)') do
-        local n = name:lower()
-        if n:find("wifi") or n:find("net") or n:find("wireless") or n:find("iwl") then
-            return temp
+    for entry in temps:gmatch('{[^}]+}') do
+        local label = entry:match('"label"%s*:%s*"([^"]+)"')
+        local name = entry:match('"name"%s*:%s*"([^"]+)"')
+        local temp = entry:match('"temp_c"%s*:%s*([%d%.]+)')
+        if temp then
+            local l, n = (label or ""):lower(), (name or ""):lower()
+            if l:find("wifi") or l:find("wl") or l:find("network") or l:find("enp") or l:find("eth") or l:find("mac")
+                or n:find("wifi") or n:find("net") or n:find("wireless") or n:find("iwl") then
+                return temp
+            end
         end
     end
     return "N/A"
@@ -444,6 +568,24 @@ end
 -- GETTER FUNCTIONS FOR memoryrc
 -- ============================================================
 
+function conky_ram_temp()
+    local temps = read_file(DATA_BASE .. "/system/temps.json")
+    if not temps then return "N/A" end
+    for entry in temps:gmatch('{[^}]+}') do
+        local label = entry:match('"label"%s*:%s*"([^"]+)"')
+        local name = entry:match('"name"%s*:%s*"([^"]+)"')
+        local temp = entry:match('"temp_c"%s*:%s*([%d%.]+)')
+        if temp then
+            local l, n = (label or ""):lower(), (name or ""):lower()
+            if (n:find("coretemp") and l:find("package"))
+                or n:find("pch_skylake") or l:find("pch") then
+                return temp
+            end
+        end
+    end
+    return "N/A"
+end
+
 function conky_storage_devices()
     return read_file(DATA_BASE .. "/system/storage.txt") or ""
 end
@@ -451,10 +593,16 @@ end
 function conky_storage_temp()
     local temps = read_file(DATA_BASE .. "/system/temps.json")
     if not temps then return "N/A" end
-    for entry, label, temp in temps:gmatch('"sensor"%s*:%s*"([^"]+)"[^}]+"label"%s*:%s*"([^"]+)"[^}]+"temp_c"%s*:%s*([%d%.]+)') do
-        local l = label:lower()
-        if l:find("nvme") or l:find("ahci") or l:find("storage") or l:find("sata") or l:find("disk") then
-            return temp
+    for entry in temps:gmatch('{[^}]+}') do
+        local label = entry:match('"label"%s*:%s*"([^"]+)"')
+        local name = entry:match('"name"%s*:%s*"([^"]+)"')
+        local temp = entry:match('"temp_c"%s*:%s*([%d%.]+)')
+        if temp then
+            local l, n = (label or ""):lower(), (name or ""):lower()
+            if n:find("nvme") or n:find("ahci") or n:find("storage") or n:find("sata") or n:find("disk")
+                or l:find("composite") or l:find("nvme") or l:find("ahci") or l:find("storage") or l:find("sata") or l:find("disk") then
+                return temp
+            end
         end
     end
     return "N/A"
