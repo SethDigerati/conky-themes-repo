@@ -79,12 +79,11 @@ conky.config = {
         color5 = 'pink',
 
     lua_load = CONFIG_DIR .. '../lua-configs/quote.lua',
-    lua_draw_hook_post = 'conky_update_quote',
 }
 
 conky.text = [[
 ${color2}QUOTE${color0}${voffset -2}${hr 1}
-${image /tmp/conky-quote/author.png -p 320,10 -s 80x80}${voffset -10}
+${image /tmp/conky/quote/author.png -p 320,10 -s 80x80}${voffset -10}
 ${voffset 5}${color1}${font Iosevka:size=11}${lua conky_quote}${font}
 ${voffset 25}${color2}${font Iosevka:style=Italic:size=11}${alignr}~${lua conky_quote_author}~${font}
 ]]

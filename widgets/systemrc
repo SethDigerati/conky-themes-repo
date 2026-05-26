@@ -77,6 +77,8 @@ conky.config = {
     color3 = 'black',
     color4 = 'green',
     color5 = 'pink',
+
+    lua_load = CONFIG_DIR .. '../lua-configs/data.lua',
 }
 
 conky.text = [[
@@ -85,7 +87,7 @@ ${font Smash Stadium Font:size=55}${time %A}${alignr}${font Iosevka:size=18}${ti
 ${font Iosevka:size=22}${alignr}${voffset -60}${time %d}${font}${voffset 30}
 Kernel: ${kernel}${alignr}Uptime: ${uptime}
 ${color2}BATTERY${color0}${voffset -2}${hr 2}
-Tech:${execi 6000 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'technology' | awk '{$1=""; print $0;}'} (${execi 6000 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'energy-full-design' | awk '{$1=""; print $0;}'})
-Status: ${battery} (${execi 2 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'energy:' | awk '{ print $2;}'}/${execi 2 upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep 'energy-full:' | awk '{$1=""; print $0;}'})${alignr}${battery_time}
+Tech:${lua conky_battery_tech} (${lua conky_battery_energy_full_design})
+Status: ${battery} (${lua conky_battery_energy}/${lua conky_battery_energy_full})${alignr}${battery_time}
 ${voffset -300}
 ]] 

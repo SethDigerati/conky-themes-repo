@@ -94,7 +94,7 @@ ${goto 150}${color2}HUMIDITY: ${color1}${lua get_humidity}%
 ${goto 150}${color2}PRESSURE: ${color1}${lua get_pressure} hPa
 ${goto 150}${color2}WINDS: ${color1}${lua get_wind} km/h${goto 250}${color2} DIRECTION: ${color1}${font Iosevka:size=10}${lua get_wind_dir_icon}${font}${lua get_wind_dir}
 ${goto 150}${color2}VISIBILITY: ${color1}${lua get_visibility} km
-${image /tmp/conky_weather_icon.png -p 5,80 -s 100x100}
+${image /tmp/conky/weather/weather_icon.png -p 5,80 -s 100x100}
 ${voffset -55}${goto 80}${color2}${color1}${font Iosevka:size=25}${lua get_temp}°C${font} 
 ${color2}5-DAY FORECAST ${color1}${hr}
 ${color2}Day${goto 60}Weather${goto 160}Temp${goto 200}Humid${goto 255}Wind${goto 302}Prec${alignr}Rain%${color1}
