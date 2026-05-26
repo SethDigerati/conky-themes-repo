@@ -188,8 +188,17 @@ end
 local function collect_battery()
     local bat = {}
     local base = "/sys/class/power_supply/BAT0"
-    local fields = {"energy_now", "energy_full", "energy_full_design", "power_now", "status", "technology"}
-    for _, f in ipairs(fields) do
+    -- Try energy_* (µWh) first, fall back to charge_* (µAh) for older batteries
+    local pairs = {
+        {"energy_now", "charge_now"},
+        {"energy_full", "charge_full"},
+        {"energy_full_design", "charge_full_design"},
+    }
+    for _, pair in ipairs(pairs) do
+        local val = read_sys(base .. "/" .. pair[1]) or read_sys(base .. "/" .. pair[2])
+        if val then bat[pair[1]] = val:gsub("%s+$", "") end
+    end
+    for _, f in ipairs({"power_now", "status", "technology"}) do
         local val = read_sys(base .. "/" .. f)
         if val then bat[f] = val:gsub("%s+$", "") end
     end
@@ -224,7 +233,8 @@ local function collect_static()
 
     -- Battery static info
     local bat_tech = read_sys("/sys/class/power_supply/BAT0/technology") or "N/A"
-    local bat_design = read_sys("/sys/class/power_supply/BAT0/energy_full_design") or "0"
+    local bat_design = read_sys("/sys/class/power_supply/BAT0/energy_full_design")
+        or read_sys("/sys/class/power_supply/BAT0/charge_full_design") or "0"
 
     static_cache = {
         gpu_model = model ~= "" and model or "N/A",
@@ -351,20 +361,23 @@ end
 
 function conky_battery_energy_full_design()
     local d = read_json("system", "battery.json")
-    return (d and d.energy_full_design) or static_cache.battery_design or "N/A"
+    local val = d and d.energy_full_design or static_cache.battery_design
+    if not val or val == "N/A" or val == "0" then return "N/A" end
+    return string.format("%.2f", tonumber(val) / 1000000)
 end
 
 function conky_battery_energy()
     local d = read_json("system", "battery.json")
-    if not d or not d.energy_now then return "N/A" end
-    local wh = tonumber(d.energy_now) / 1000000
-    return string.format("%.2f", wh)
+    if not d then return "N/A" end
+    local val = d.energy_now
+    if not val then return "N/A" end
+    return string.format("%.2f", tonumber(val) / 1000000)
 end
 
 function conky_battery_energy_full()
     local d = read_json("system", "battery.json")
     if not d or not d.energy_full then return "N/A" end
-    return tostring(d.energy_full)
+    return string.format("%.2f", tonumber(d.energy_full) / 1000000)
 end
 
 -- ============================================================
