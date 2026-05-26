@@ -205,9 +205,23 @@ local function collect_battery()
     write_json("system", "battery.json", bat)
 end
 
+local function gpu_card()
+    local p = io.popen("ls /sys/class/drm/ 2>/dev/null")
+    if not p then return "/sys/class/drm/card0" end
+    for f in p:lines() do
+        if f:match("^card%d+$") and read_sys("/sys/class/drm/" .. f .. "/gt_cur_freq_mhz") then
+            p:close()
+            return "/sys/class/drm/" .. f
+        end
+    end
+    p:close()
+    return "/sys/class/drm/card0"
+end
+
 local function collect_gpu()
-    local cur = read_sys("/sys/class/drm/card0/gt_cur_freq_mhz") or ""
-    local max = read_sys("/sys/class/drm/card0/gt_max_freq_mhz") or ""
+    local card = gpu_card()
+    local cur = read_sys(card .. "/gt_cur_freq_mhz") or ""
+    local max = read_sys(card .. "/gt_max_freq_mhz") or ""
     local shmem = 0
     local meminfo = read_file("/proc/meminfo")
     if meminfo then
@@ -271,8 +285,12 @@ end
 -- ============================================================
 
 local function collect_storage()
-    local devices = run("lsblk -ro NAME,SIZE,TYPE,MOUNTPOINTS 2>/dev/null | awk '$3==\"disk\"||$3==\"rom\"{print \"─\"$1\"-------(\"$2\")\"}; $3==\"part\"{mnt=$4; if(length(mnt)>20) mnt=substr(mnt,1,17) \"...\"; print \"     └\"$1\"-----(\"$2\")_\" mnt}'")
-    write_json("system", "storage.json", { devices = devices:gsub("%s+$", "") })
+    local raw = run("lsblk -ro NAME,SIZE,TYPE,MOUNTPOINTS 2>/dev/null | "
+        .. "awk '$3==\"disk\"||$3==\"rom\"{print \"─\"$1\"-------(\"$2\")\"}; "
+        .. "$3==\"part\"{mnt=$4; if(length(mnt)>20) mnt=substr(mnt,1,17) \"...\"; "
+        .. "print \"     └\"$1\"-----(\"$2\")_\" mnt}'")
+    ensure_dir(DATA_BASE .. "/system")
+    write_file(DATA_BASE .. "/system/storage.txt", raw)
 end
 
 -- ============================================================
@@ -305,7 +323,27 @@ end
 -- ============================================================
 
 function conky_gpu_model()
-    return static_cache.gpu_model or "N/A"
+    local model = static_cache.gpu_model or "N/A"
+    local max_len = 50
+    if #model <= max_len then
+        return model
+    end
+
+    -- Simple marquee: rotate the string by one character per second with a small gap
+    local gap = "   "
+    local s = model .. gap
+    local len = #s
+    local now = os.time()
+    local speed = 1 -- characters per second
+    local offset = math.floor(now * speed) % len
+
+    if offset + max_len <= len then
+        return s:sub(offset + 1, offset + max_len)
+    else
+        local first = s:sub(offset + 1)
+        local rem = max_len - #first
+        return first .. s:sub(1, rem)
+    end
 end
 
 function conky_gpu_driver()
@@ -407,8 +445,7 @@ end
 -- ============================================================
 
 function conky_storage_devices()
-    local d = read_json("system", "storage.json")
-    return d and d.devices or ""
+    return read_file(DATA_BASE .. "/system/storage.txt") or ""
 end
 
 function conky_storage_temp()
