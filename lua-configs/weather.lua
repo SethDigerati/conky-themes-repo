@@ -62,12 +62,14 @@ end
 
 -- Weather API config (from .env or environment)
 local WEATHER_API_KEY = read_env("WEATHER_API_KEY") or os.getenv("WEATHER_API_KEY") or ""
-local WEATHER_CITY = read_env("WEATHER_NAME") or os.getenv("WEATHER_NAME") or ""
 local WEATHER_UNITS = read_env("WEATHER_UNITS") or os.getenv("WEATHER_UNITS") or "metric"
 local OWM_BASE = "https://api.openweathermap.org/data/2.5"
 local CURL = "/usr/bin/curl"
 local WEATHER_TTL = 600
+local LOCATION_TTL = 86400
 local last_weather_fetch = 0
+local last_location_fetch = 0
+local location_cache = { lat = "", lon = "", city = "", country = "" }
 
 -- Icons directory - absolute path
 -- Icons directory (relative to repository root)
@@ -207,6 +209,11 @@ local wind_arrows = {
     ["W"] = "→", ["WNW"] = "↘", ["NW"] = "↘", ["NNW"] = "↘"
 }
 
+-- Forward declarations for functions defined later
+local parse_json_value, parse_nested_json, parse_array_item
+local deg_to_direction, get_icon_path, is_daytime
+local parse_forecast_cached
+
 -- Read raw cached weather data from /tmp/conky/weather/
 local function read_weather_cache()
     -- Location
@@ -249,7 +256,7 @@ local function read_weather_cache()
 end
 
 -- Determine if it's day or night based on icon code suffix or time
-local function is_daytime(icon_code)
+is_daytime = function(icon_code)
     if icon_code and icon_code:sub(-1) == "n" then
         return false
     elseif icon_code and icon_code:sub(-1) == "d" then
@@ -261,7 +268,7 @@ local function is_daytime(icon_code)
 end
 
 -- Get icon path from weather description
-local function get_icon_path(description, icon_code)
+get_icon_path = function(description, icon_code)
     description = description and description:lower() or "clear sky"
     local mapping = icon_mapping[description]
     
@@ -276,7 +283,7 @@ local function get_icon_path(description, icon_code)
 end
 
 -- Wind direction conversion
-local function deg_to_direction(deg)
+deg_to_direction = function(deg)
     deg = tonumber(deg) or 0
     local directions = {"N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"}
     local index = math.floor((deg + 11.25) / 22.5) % 16 + 1
@@ -284,7 +291,7 @@ local function deg_to_direction(deg)
 end
 
 -- JSON parsing helpers
-local function parse_json_value(json, key)
+parse_json_value = function(json, key)
     local pattern = '"' .. key .. '"%s*:%s*([^,}%]]+)'
     local match = json:match(pattern)
     if match then
@@ -294,7 +301,7 @@ local function parse_json_value(json, key)
     return nil
 end
 
-local function parse_nested_json(json, parent_key, child_key)
+parse_nested_json = function(json, parent_key, child_key)
     local parent_pattern = '"' .. parent_key .. '"%s*:%s*%{([^}]+)%}'
     local parent_match = json:match(parent_pattern)
     if parent_match then
@@ -303,7 +310,7 @@ local function parse_nested_json(json, parent_key, child_key)
     return nil
 end
 
-local function parse_array_item(json, array_key, index)
+parse_array_item = function(json, array_key, index)
     local pattern = '"' .. array_key .. '"%s*:%s*%[(.-)%]'
     local array_match = json:match(pattern)
     if array_match then
@@ -330,7 +337,7 @@ local function get_moon_phase(timestamp)
 end
 
 -- Parse forecast from cached OpenWeatherMap data
-local function parse_forecast_cached(data)
+parse_forecast_cached = function(data)
     if not data or data == "" then return false end
     
     weather_data.forecast = {}
@@ -494,17 +501,51 @@ local function update_icon_symlink()
     end
 end
 
+-- ============ LOCATION DETECTION ============
+local function fetch_location()
+    local now = os.time()
+    if now - last_location_fetch < LOCATION_TTL then return end
+    if next(location_cache) and location_cache.city ~= "" then return end
+
+    local city = run(CURL .. ' -s --max-time 5 ipinfo.io/city 2>/dev/null')
+        :gsub("^%s+", ""):gsub("%s+$", ""):gsub("\n", "")
+    local country = run(CURL .. ' -s --max-time 5 ipinfo.io/country 2>/dev/null')
+        :gsub("^%s+", ""):gsub("%s+$", ""):gsub("\n", "")
+    local loc = run(CURL .. ' -s --max-time 5 ipinfo.io/loc 2>/dev/null')
+        :gsub("^%s+", ""):gsub("%s+$", ""):gsub("\n", "")
+
+    local got_any = false
+    if city ~= "" then location_cache.city = city; got_any = true end
+    if country ~= "" then location_cache.country = country; got_any = true end
+    if loc ~= "" then
+        local lat, lon = loc:match("^([%d%.%-]+),([%d%.%-]+)")
+        if lat then location_cache.lat = lat; got_any = true end
+        if lon then location_cache.lon = lon; got_any = true end
+    end
+
+    if not got_any then return end
+    last_location_fetch = now
+
+    write_file(DATA_BASE .. "/weather/location.json",
+        '{\n  "lat": "' .. location_cache.lat .. '",\n  "lon": "' .. location_cache.lon .. '",\n  "city": "' .. location_cache.city .. '",\n  "country": "' .. location_cache.country .. '"\n}')
+end
+
 -- ============ WEATHER API FETCHER ============
 local function fetch_weather_data()
     local now = os.time()
     if now - last_weather_fetch < WEATHER_TTL then return end
-    if WEATHER_API_KEY == "" or WEATHER_CITY == "" then return end
-    last_weather_fetch = now
+    if WEATHER_API_KEY == "" then return end
+
+    -- Ensure location is known
+    if location_cache.lat == "" or location_cache.lon == "" then
+        fetch_location()
+    end
+    if location_cache.lat == "" or location_cache.lon == "" then return end
 
     ensure_dir(DATA_BASE .. "/weather")
 
     local function owm_fetch(endpoint)
-        local url = OWM_BASE .. "/" .. endpoint .. "?q=" .. WEATHER_CITY .. "&appid=" .. WEATHER_API_KEY .. "&units=" .. WEATHER_UNITS
+        local url = OWM_BASE .. "/" .. endpoint .. "?lat=" .. location_cache.lat .. "&lon=" .. location_cache.lon .. "&appid=" .. WEATHER_API_KEY .. "&units=" .. WEATHER_UNITS
         return run(CURL .. ' -s -S --connect-timeout 5 --max-time 10 "' .. url .. '" 2>/dev/null')
     end
 
@@ -512,19 +553,28 @@ local function fetch_weather_data()
     local current = owm_fetch("weather")
     if current and current ~= "" and current:match('"cod"%s*:%s*200') then
         write_file(DATA_BASE .. "/weather/current.json", current)
-        local city = current:match('"name"%s*:%s*"([^"]*)"') or WEATHER_CITY
-        local country = current:match('"country"%s*:%s*"([^"]*)"') or ""
-        local lat = current:match('"lat"%s*:%s*([%d%.%-]+)') or ""
-        local lon = current:match('"lon"%s*:%s*([%d%.%-]+)') or ""
+        local city = current:match('"name"%s*:%s*"([^"]*)"') or location_cache.city
+        local country = current:match('"country"%s*:%s*"([^"]*)"') or location_cache.country
+        local lat = current:match('"lat"%s*:%s*([%d%.%-]+)') or location_cache.lat
+        local lon = current:match('"lon"%s*:%s*([%d%.%-]+)') or location_cache.lon
         write_file(DATA_BASE .. "/weather/location.json",
             '{\n  "lat": "' .. lat .. '",\n  "lon": "' .. lon .. '",\n  "city": "' .. city .. '",\n  "country": "' .. country .. '"\n}')
+        -- Update cache with potentially richer data from API
+        location_cache.city = city
+        location_cache.country = country
+        location_cache.lat = lat
+        location_cache.lon = lon
     end
 
     -- Fetch 5-day forecast
+    local got_any = (current and current ~= "" and current:match('"cod"%s*:%s*200'))
     local forecast = owm_fetch("forecast")
     if forecast and forecast ~= "" and forecast:match('"cod"%s*:%s*"200"') then
         write_file(DATA_BASE .. "/weather/forecast.json", forecast)
+        got_any = true
     end
+
+    if got_any then last_weather_fetch = now end
 end
 
 -- ============ MAIN UPDATE FUNCTION ============
@@ -541,7 +591,9 @@ function conky_update_weather()
     weather_data.moon = get_moon_phase(os.time())
     weather_data.update_time = os.date("%Y-%m-%d %H:%M")
     weather_data.current_date = os.date("%A, %B %d, %Y")
-    weather_data.last_update = current_time
+    if weather_data.current.temp ~= "N/A" or weather_data.city then
+        weather_data.last_update = current_time
+    end
     return ""
 end
 
@@ -604,7 +656,7 @@ end
 function conky_moon_phase() return weather_data.moon.icon .. " " .. weather_data.moon.name end
 function conky_moon_icon() return weather_data.moon.icon end
 function conky_moon_name() return weather_data.moon.name end
-function conky_get_temp() return math.floor(weather_data.current.temp + 0.5) end
+function conky_get_temp() local t = tonumber(weather_data.current.temp); return t and math.floor(t + 0.5) or "N/A" end
 function conky_get_mintemp() return weather_data.current.temp_min end
 function conky_get_maxtemp() return weather_data.current.temp_max end
 function conky_get_humidity() return weather_data.current.humidity end
