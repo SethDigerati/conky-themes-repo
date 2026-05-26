@@ -84,8 +84,8 @@ conky.config = {
 
 conky.text = [[
 ${color2}SYSTEM ${color0}${voffset -2}${hr 1}
-${font Smash Stadium Font:size=55}${time %A}${alignr}${font Iosevka:size=18}${time %H:%M}${font}
-${font Iosevka:size=22}${alignr}${voffset -60}${time %d}${font}${voffset 30}
+${font Smash Stadium Font:size=40}${time %A}${alignr}${font Iosevka:size=16}[${time %H:%M}]${font}
+${font Iosevka:style=Bold:size=20}${alignr}${voffset -50}${time %d}${font}${voffset 30}
 Kernel: ${kernel}${alignr}Uptime: ${uptime}
 ${color2}BATTERY${color0}${voffset -2}${hr 2}
 Tech:${lua conky_battery_tech} (${lua conky_battery_energy_full_design})
