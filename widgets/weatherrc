@@ -84,7 +84,7 @@ conky.config = {
 
 conky.text = [[
 ${lua conky_update_weather}${color2}WEATHER ${color1}${hr}
-${lua get_city}${lua get_country}
+${lua get_city}${lua get_country}${voffset -5}
 ${goto 250}${font Iosevka:size=12}${lua moon_name}${voffset -5}${font Iosevka:size=20}${lua moon_icon}${font} ${voffset -20}
 ${color2}${font Iosevka:size=18}${lua get_description}${font}
 ${goto 150}${color2}TEMP: ${color1}${lua get_forecast_mintemp}-${lua get_forecast_maxtemp}°C

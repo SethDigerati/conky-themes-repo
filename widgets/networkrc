@@ -87,7 +87,7 @@ conky.config = {
 }
 
 conky.text = [[
-${color2}NETWORK(${template0})${color0}-(${lua conky_network_temp}°C) ${hr}
+${color2}NETWORK(${template0})${color0}-(${lua conky_network_temp}°C)${hr}
 Status:${alignr}${if_existing /sys/class/net/${template0}/operstate up}${color 00ff41}ONLINE${else}${color ff0000}OFFLINE${endif}$color
 SSID:${alignr}${wireless_essid ${template0}}
 Bitrate: ${wireless_bitrate ${template0}}${alignr}Signal: ${wireless_link_qual_perc ${template0}}% [${wireless_link_qual ${template0}}/${wireless_link_qual_max ${template0}}]

@@ -84,7 +84,7 @@ conky.config =
 }
 
 conky.text = [[
-${color2}RAM ${color0}-(${lua conky_ram_temp}°C)${voffset -2}${hr 1}
+${color2}RAM${color0}-(${lua conky_ram_temp}°C)${voffset -2}${hr 1}
 Used: ${mem} (${memperc}%) ---> ${memeasyfree} Free ${alignr}${memmax}${color}${voffset -5}
 ${membar 5,400}
 ${color2}TASK ${goto 210}PID ${goto 300}VSIZE${alignr}SIZE ${voffset -10}${color}
@@ -104,8 +104,8 @@ ${color2}SWAP ${color}${voffset -2}${hr 1}
 Used: ${swap} (${swapperc}%) ---> ${swapfree} Free${alignr}${swapmax}
 ${swapbar 5,400}
 ${color2}STORAGE DEVICES ${color0}${voffset -2}${hr 1}
-${lua conky_storage_devices}
-${color2}DISK${color0}-(${lua conky_storage_temp}°C) ${voffset -2}${hr 1}
+${lua conky_storage_devices}${voffset -15}
+${color2}DISK${color0}-(${lua conky_storage_temp}°C)${voffset -2}${hr 1}
 Used: ${fs_used } (${fs_used_perc}%) ---> ${fs_free } Free ${alignr}${fs_size }
 ${fs_bar 5,400 }
 ${diskiograph_read 35,400 ffff00 ff0000 -t}${voffset -15}
