@@ -82,11 +82,11 @@ conky.config = {
 }
 
 conky.text = [[
-${color2}GPU${color}${voffset -2}${hr 1}
+${color2}GPU${color}-(${lua conky_gpu_temp}°C)${voffset -2}${hr 1}
 ${voffset 4}${color1}Model:${alignr}${color}${lua conky_gpu_model}
+${color1}Type:${color}${alignr}${lua conky_gpu_type}
 ${color1}Driver:${color}${alignr}${lua conky_gpu_driver}
 ${color1}Memory Usage:${color}${alignr}${lua conky_gpu_mem_used}/${lua conky_gpu_mem_total} MB
-${color1}Temperature:${color}${alignr}${lua conky_gpu_temp}°C
 ${color1}Frequency:${color}${alignr}${lua conky_gpu_freq_cur}/${lua conky_gpu_freq_max} MHz
 ${color1}Driver Version:${color}${alignr}${lua conky_kernel}
 ${voffset -10}${stippled_hr 1}
