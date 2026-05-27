@@ -51,7 +51,7 @@ conky.config = {
     
     -- Misc settings
     stippled_borders = 0,
-    update_interval = 360,
+    update_interval = 300,
     uppercase = false,
     use_spacer = 'none',
     temperature_unit = 'celsius',
