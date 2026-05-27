@@ -1,0 +1,522 @@
+-- Market Data Widget (CoinGecko + Open ER API)
+-- Caches: /tmp/conky/finnhub/
+
+local DATA_BASE = "/tmp/conky/finnhub"
+
+local function read_file(path)
+    local f = io.open(path, "r")
+    if not f then return nil end
+    local c = f:read("*a")
+    f:close()
+    return c
+end
+
+local function ensure_dir(path)
+    os.execute("mkdir -p \"" .. path .. "\" 2>/dev/null")
+end
+
+local function write_file(path, content)
+    local tmp = path .. ".tmp"
+    local f = io.open(tmp, "w")
+    if not f then return false end
+    f:write(content)
+    f:close()
+    os.rename(tmp, path)
+    return true
+end
+
+local function run(cmd)
+    local f = io.popen(cmd)
+    if not f then return "" end
+    local s = f:read("*a")
+    f:close()
+    return s
+end
+
+local CURL = "/usr/bin/curl"
+
+local assets = {
+    { name = "BTC", cg_id = "bitcoin" },
+    { name = "ETH", cg_id = "ethereum" },
+    { name = "SOL", cg_id = "solana" },
+    { name = "XRP", cg_id = "ripple" },
+    { name = "DOGE", cg_id = "dogecoin" },
+    { name = "ADA", cg_id = "cardano" },
+    { name = "BNB", cg_id = "binancecoin" },
+    { name = "TRX", cg_id = "tron" },
+    { name = "AVAX", cg_id = "avalanche-2" },
+    { name = "LINK", cg_id = "chainlink" },
+    { name = "DOT", cg_id = "polkadot" },
+    { name = "LTC", cg_id = "litecoin" },
+}
+
+local graph_cryptos = {
+    { name = "BTC", cg_id = "bitcoin" },
+    { name = "ETH", cg_id = "ethereum" },
+    { name = "SOL", cg_id = "solana" },
+    { name = "BNB", cg_id = "binancecoin" },
+    { name = "XRP", cg_id = "ripple" },
+}
+
+local last_markets_fetch = 0
+local last_forex_fetch = 0
+local last_chart_fetch = 0
+local chart_rotate_idx = 1
+local MARKETS_TTL = 240
+local FOREX_TTL = 240
+local CHART_TTL = 3600
+
+local location_cache = { country = "" }
+
+local country_currency = {
+    US = "USD", IN = "INR", GB = "GBP", JP = "JPY",
+    DE = "EUR", FR = "EUR", IT = "EUR", ES = "EUR",
+    NL = "EUR", BE = "EUR", PT = "EUR", IE = "EUR",
+    AT = "EUR", FI = "EUR", GR = "EUR",
+    CA = "CAD", AU = "AUD", CH = "CHF", CN = "CNY",
+    KR = "KRW", SG = "SGD", HK = "HKD", TW = "TWD",
+    BR = "BRL", MX = "MXN", ZA = "ZAR", SE = "SEK",
+    NO = "NOK", NZ = "NZD", RU = "RUB", TR = "TRY",
+    AE = "AED", SA = "SAR", TH = "THB", MY = "MYR",
+    PH = "PHP", ID = "IDR", VN = "VND", EG = "EGP",
+    AR = "ARS", CO = "COP", CL = "CLP", PE = "PEN",
+    PL = "PLN", CZ = "CZK", HU = "HUF", DK = "DKK",
+    IL = "ILS", PK = "PKR", BD = "BDT", NG = "NGN",
+    KE = "KES", TZ = "TZS", UG = "UGX", GH = "GHS",
+    MA = "MAD", DZ = "DZD", TN = "TND", QA = "QAR",
+    KW = "KWD", OM = "OMR", BH = "BHD", JO = "JOD",
+    LB = "LBP", RO = "RON", BG = "BGN", RS = "RSD",
+    HR = "HRK", IS = "ISK", LT = "EUR", LV = "EUR",
+    EE = "EUR", SK = "EUR", SI = "EUR", CY = "EUR",
+    MT = "EUR", LU = "EUR",
+}
+
+local currency_symbols = {
+    USD = "$", INR = "₹", EUR = "€", JPY = "¥",
+    GBP = "£", CAD = "C$", AUD = "A$", CHF = "Fr",
+    CNY = "¥", KRW = "₩", SGD = "S$", HKD = "HK$",
+    TWD = "NT$", BRL = "R$", MXN = "MX$", ZAR = "R",
+    SEK = "kr", NOK = "kr", NZD = "NZ$", RUB = "₽",
+    TRY = "₺", AED = "د.إ", SAR = "﷼", THB = "฿",
+    ILS = "₪", PLN = "zł", CZK = "Kč", HUF = "Ft",
+    DKK = "kr",
+}
+
+ensure_dir(DATA_BASE)
+
+-- ============ LOCATION ============
+local function fetch_location()
+    if location_cache.country ~= "" then return end
+    local country = run(CURL .. ' -s --max-time 5 ipinfo.io/country 2>/dev/null')
+        :gsub("^%s+", ""):gsub("%s+$", ""):gsub("\n", "")
+    if country ~= "" then
+        location_cache.country = country
+        write_file(DATA_BASE .. "/location.json", '{"country":"' .. country .. '"}')
+    end
+end
+
+-- ============ CACHE ============
+local function read_cache(key)
+    local content = read_file(DATA_BASE .. "/cache_" .. key .. ".txt")
+    if not content then return nil end
+    local ok, data = pcall(load("return " .. content))
+    if ok and type(data) == "table" then return data end
+    return nil
+end
+
+local function write_cache(key, data)
+    local parts = {}
+    for k, v in pairs(data) do
+        if type(v) == "table" then
+            local arr = {}
+            for _, val in ipairs(v) do
+                arr[#arr + 1] = tostring(val)
+            end
+            parts[#parts + 1] = k .. "={" .. table.concat(arr, ",") .. "}"
+        else
+            parts[#parts + 1] = k .. "=" .. tostring(v)
+        end
+    end
+    write_file(DATA_BASE .. "/cache_" .. key .. ".txt", "{" .. table.concat(parts, ",") .. "}")
+end
+
+-- ============ FETCH MARKETS (all 12 coins, single API call) ============
+local function fetch_markets()
+    local ids = {}
+    for _, a in ipairs(assets) do
+        ids[#ids + 1] = a.cg_id
+    end
+    local url = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids="
+        .. table.concat(ids, ",") .. "&price_change_percentage=7d,30d,1y&order=market_cap_desc"
+
+    local resp = run(CURL .. ' -s -S --connect-timeout 5 --max-time 15 "' .. url .. '" 2>/dev/null')
+    if not resp or resp == "" then return false end
+
+    local json_file = DATA_BASE .. "/_data.json"
+    local py_script = DATA_BASE .. "/_parse.py"
+    write_file(json_file, resp)
+    write_file(py_script, [[
+import sys, json
+with open(sys.argv[1]) as f:
+    data = json.load(f)
+for d in data:
+    print(d["id"], d.get("current_price", ""),
+          d.get("price_change_percentage_24h", ""),
+          d.get("price_change_percentage_7d_in_currency", ""),
+          d.get("price_change_percentage_30d_in_currency", ""),
+          d.get("price_change_percentage_1y_in_currency", ""))
+]])
+    local output = run('python3 "' .. py_script .. '" "' .. json_file .. '" 2>/dev/null')
+    os.remove(py_script)
+    os.remove(json_file)
+
+    if not output or output == "" then return false end
+
+    local got_any = false
+    for line in output:gmatch("[^\n]+") do
+        local cg_id, price, pct_24h, pct_7d, pct_30d, pct_1y =
+            line:match("^(%S+)%s+(%S*)%s+(%S*)%s+(%S*)%s+(%S*)%s+(%S*)%s*$")
+        if cg_id and price ~= "" then
+            local asset = nil
+            for _, a in ipairs(assets) do
+                if a.cg_id == cg_id then asset = a; break end
+            end
+            if asset then
+                local data = { cur = tonumber(price) }
+                if pct_24h ~= "" then data.pct_1d = tonumber(pct_24h) end
+                if pct_7d ~= "" then data.pct_1w = tonumber(pct_7d) end
+                if pct_30d ~= "" then data.pct_1m = tonumber(pct_30d) end
+                if pct_1y ~= "" then data.pct_1y = tonumber(pct_1y) end
+                write_cache(asset.name, data)
+                got_any = true
+            end
+        end
+    end
+
+    return got_any
+end
+
+-- ============ FETCH FOREX ============
+local function fetch_forex()
+    local resp = run(CURL .. ' -s -S --connect-timeout 5 --max-time 10 "https://open.er-api.com/v6/latest/USD" 2>/dev/null')
+    if not resp or resp == "" then return false end
+
+    local rates = {}
+    for code, val in resp:gmatch('"(%w+)"%s*:%s*([%d%.]+)') do
+        rates[code] = tonumber(val)
+    end
+
+    if next(rates) == nil then return false end
+    write_cache("forex", rates)
+    return true
+end
+
+-- ============ FETCH CHART (one coin per cycle, for graph) ============
+local function fetch_chart(cg_id)
+    local url = "https://api.coingecko.com/api/v3/coins/" .. cg_id .. "/market_chart?vs_currency=usd&days=365"
+    local resp = run(CURL .. ' -s -S --connect-timeout 5 --max-time 15 "' .. url .. '" 2>/dev/null')
+    if not resp or resp == "" then return false end
+    if not resp:match('"prices"') then return false end
+
+    local json_file = DATA_BASE .. "/_chart.json"
+    local py_script = DATA_BASE .. "/_parse_chart.py"
+    write_file(json_file, resp)
+    write_file(py_script, [[
+import sys, json
+with open(sys.argv[1]) as f:
+    d = json.load(f)
+n = len(d["prices"])
+if n < 3:
+    sys.exit(0)
+step = max(1, n // 12)
+base = d["prices"][0][1]
+for i in range(12):
+    idx = min(1 + i * step, n) - 1
+    pct = (d["prices"][idx][1] - base) / base * 100
+    print("{:.6f}".format(pct))
+]])
+    local output = run('python3 "' .. py_script .. '" "' .. json_file .. '" 2>/dev/null')
+    os.remove(py_script)
+    os.remove(json_file)
+
+    if not output or output == "" then return false end
+
+    local graph = {}
+    for line in output:gmatch("[^\n]+") do
+        local val = tonumber(line)
+        if val then graph[#graph + 1] = val end
+    end
+
+    if #graph < 2 then return false end
+
+    local asset_name = nil
+    for _, a in ipairs(assets) do
+        if a.cg_id == cg_id then asset_name = a.name; break end
+    end
+    if not asset_name then return false end
+
+    local existing = read_cache(asset_name) or {}
+    existing.graph = graph
+    write_cache(asset_name, existing)
+    return true
+end
+
+-- ============ MAIN UPDATE ============
+function conky_update_finnhub()
+    fetch_location()
+
+    local now = os.time()
+    local got_data = false
+
+    -- Markets (all 12 coins, every 240s)
+    if now - last_markets_fetch >= MARKETS_TTL then
+        if fetch_markets() then
+            last_markets_fetch = now
+            got_data = true
+        end
+    end
+
+    -- Forex (every 240s)
+    if now - last_forex_fetch >= FOREX_TTL then
+        if fetch_forex() then
+            last_forex_fetch = now
+        end
+    end
+
+    -- Chart (1 coin per cycle, rotating, every 3600s)
+    if now - last_chart_fetch >= CHART_TTL then
+        local c = graph_cryptos[chart_rotate_idx]
+        if fetch_chart(c.cg_id) then
+            chart_rotate_idx = (chart_rotate_idx % #graph_cryptos) + 1
+            last_chart_fetch = now
+            got_data = true
+        end
+    end
+
+    return ""
+end
+
+-- ============ GETTER HELPERS ============
+local function get_pct(asset_idx, field)
+    local asset = assets[asset_idx]
+    if not asset then return nil end
+    local data = read_cache(asset.name)
+    if not data then return nil end
+    return data[field]
+end
+
+local function get_graph_data(asset_name)
+    local data = read_cache(asset_name)
+    if not data or not data.graph then return nil end
+    return data.graph
+end
+
+-- ============ FOREX ============
+local function get_forex_rate(code)
+    local rates = read_cache("forex")
+    if not rates then return nil end
+    return rates[code]
+end
+
+function conky_fn_forex_row()
+    fetch_location()
+    local country = location_cache.country
+
+    local parts = {}
+    local local_code = country_currency[country]
+    if local_code and local_code ~= "USD" then
+        local rate = get_forex_rate(local_code)
+        local sym = currency_symbols[local_code] or local_code
+        if rate then
+            parts[#parts + 1] = "${color1}1$ = " .. string.format("%.2f", rate) .. " " .. sym .. "${color}"
+        end
+    end
+
+    local eur_rate = get_forex_rate("EUR")
+    if eur_rate then
+        if #parts > 0 then parts[#parts + 1] = "  ${color2}|${color}  " end
+        local sym = currency_symbols["EUR"] or "€"
+        parts[#parts + 1] = "${color1}1$ = " .. string.format("%.2f", eur_rate) .. " " .. sym .. "${color}"
+    end
+
+    local jpy_rate = get_forex_rate("JPY")
+    if jpy_rate then
+        if #parts > 0 then parts[#parts + 1] = "  ${color2}|${color}  " end
+        local sym = currency_symbols["JPY"] or "¥"
+        parts[#parts + 1] = "${color1}1$ = " .. string.format("%.2f", jpy_rate) .. " " .. sym .. "${color}"
+    end
+
+    if #parts == 0 then return "..." end
+    return table.concat(parts)
+end
+
+-- ============ DYNAMIC GETTERS ============
+local function format_cell(field, idx)
+    local val = get_pct(idx, field)
+    if val == nil then return " --" end
+    local fmt = string.format("%+.1f", val)
+    if val > 0 then
+        return "${color4}▲${color} " .. fmt:sub(2)
+    elseif val < 0 then
+        return "${color5}▼${color} " .. fmt
+    else
+        return "${color1}─${color} 0.0 "
+    end
+end
+
+for i = 1, 12 do
+    local idx = i
+    _G["conky_fn_name_" .. idx] = function() return assets[idx].name end
+    _G["conky_fn_cell_1d_" .. idx] = function() return format_cell("pct_1d", idx) end
+    _G["conky_fn_cell_1w_" .. idx] = function() return format_cell("pct_1w", idx) end
+    _G["conky_fn_cell_1m_" .. idx] = function() return format_cell("pct_1m", idx) end
+    _G["conky_fn_cell_1y_" .. idx] = function() return format_cell("pct_1y", idx) end
+end
+
+-- ============ TABLE BUILDER ============
+function conky_fn_build_table()
+    local lines = {}
+    for i = 1, 12 do
+        lines[#lines + 1] = string.format(
+            "${lua conky_fn_name_%d}${goto 95}${lua conky_fn_cell_1d_%d}${goto 160}${lua conky_fn_cell_1w_%d}${goto 225}${lua conky_fn_cell_1m_%d}${goto 290}${lua conky_fn_cell_1y_%d}",
+            i, i, i, i, i
+        )
+    end
+    return table.concat(lines, "\n")
+end
+
+-- ============ CAIRO LINE GRAPH ============
+local graph_display_names = {"BTC", "ETH", "SOL", "BNB", "XRP"}
+local graph_colors = {
+    {0.95, 0.5, 0.1},   -- orange
+    {0.3, 0.5, 0.95},   -- blue
+    {0.6, 0.2, 0.8},    -- purple
+    {0.95, 0.85, 0.1},  -- yellow
+    {0.1, 0.8, 0.3},    -- green
+}
+
+local function find_range(all_data)
+    local min_val, max_val = math.huge, -math.huge
+    local has_data = false
+    for _, data in ipairs(all_data) do
+        if data then
+            for _, v in ipairs(data) do
+                has_data = true
+                if v < min_val then min_val = v end
+                if v > max_val then max_val = v end
+            end
+        end
+    end
+    if not has_data then return -5, 5 end
+    if min_val == max_val then return min_val - 1, max_val + 1 end
+    local padding = (max_val - min_val) * 0.1
+    return min_val - padding, max_val + padding
+end
+
+function conky_finnhub_draw()
+    if conky_window == nil then return end
+    if not cairo_xlib_surface_create then return end
+
+    local cs = cairo_xlib_surface_create(
+        conky_window.display, conky_window.drawable,
+        conky_window.visual, conky_window.width, conky_window.height
+    )
+    local cr = cairo_create(cs)
+
+    local graph_x, graph_y = 40, 240
+    local graph_w, graph_h = 340, 110
+
+    local all_data = {}
+    for _, name in ipairs(graph_display_names) do
+        all_data[#all_data + 1] = get_graph_data(name)
+    end
+
+    local min_val, max_val = find_range(all_data)
+    local range = max_val - min_val
+    if range == 0 then range = 1 end
+
+    cairo_set_source_rgba(cr, 0.08, 0.08, 0.08, 0.4)
+    cairo_rectangle(cr, graph_x, graph_y, graph_w, graph_h)
+    cairo_fill(cr)
+
+    cairo_set_line_width(cr, 0.5)
+    for i = 0, 4 do
+        local y = graph_y + graph_h * i / 4
+        cairo_set_source_rgba(cr, 1, 1, 1, 0.08)
+        cairo_move_to(cr, graph_x, math.floor(y) + 0.5)
+        cairo_line_to(cr, graph_x + graph_w, math.floor(y) + 0.5)
+        cairo_stroke(cr)
+
+        local label_val = max_val - (max_val - min_val) * i / 4
+        cairo_select_font_face(cr, "Iosevka", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
+        cairo_set_font_size(cr, 8)
+        cairo_move_to(cr, graph_x - 32, math.floor(y) + 3)
+        local label = string.format("%+.1f%%", label_val)
+        if label:find("+") then
+            cairo_set_source_rgba(cr, 0.5, 1, 0.5, 0.5)
+        elseif label:find("-") then
+            cairo_set_source_rgba(cr, 1, 0.5, 0.5, 0.5)
+        else
+            cairo_set_source_rgba(cr, 0.6, 0.6, 0.6, 0.6)
+        end
+        cairo_show_text(cr, label)
+    end
+
+    if min_val < 0 and max_val > 0 then
+        local zero_y = graph_y + graph_h - (0 - min_val) / range * graph_h
+        cairo_set_source_rgba(cr, 1, 1, 1, 0.2)
+        cairo_set_line_width(cr, 0.5)
+        cairo_move_to(cr, graph_x, math.floor(zero_y) + 0.5)
+        cairo_line_to(cr, graph_x + graph_w, math.floor(zero_y) + 0.5)
+        cairo_stroke(cr)
+    end
+
+    local months = {"J","F","M","A","M","J","J","A","S","O","N","D"}
+    for i = 1, 12 do
+        local x = graph_x + (i - 1) * graph_w / 11
+        cairo_set_source_rgba(cr, 0.6, 0.6, 0.6, 0.5)
+        cairo_select_font_face(cr, "Iosevka", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
+        cairo_set_font_size(cr, 7)
+        cairo_move_to(cr, x - 3, graph_y + graph_h + 10)
+        cairo_show_text(cr, months[i])
+    end
+
+    for idx = 1, 5 do
+        local data = all_data[idx]
+        if data and #data >= 2 then
+            local r, g, b = graph_colors[idx][1], graph_colors[idx][2], graph_colors[idx][3]
+            cairo_set_source_rgba(cr, r, g, b, 0.85)
+            cairo_set_line_width(cr, 1.5)
+
+            for i = 1, #data do
+                local x = graph_x + (i - 1) * graph_w / (#data - 1)
+                local y = graph_y + graph_h - (data[i] - min_val) / range * graph_h
+                if i == 1 then
+                    cairo_move_to(cr, x, y)
+                else
+                    cairo_line_to(cr, x, y)
+                end
+            end
+            cairo_stroke(cr)
+        end
+    end
+
+    local legend_y = graph_y + graph_h + 22
+    local legend_start_x = 15
+    for idx = 1, 5 do
+        local x = legend_start_x + (idx - 1) * 78
+        local r, g, b = graph_colors[idx][1], graph_colors[idx][2], graph_colors[idx][3]
+        cairo_set_source_rgba(cr, r, g, b, 0.85)
+        cairo_rectangle(cr, x, legend_y, 8, 8)
+        cairo_fill(cr)
+
+        cairo_set_source_rgba(cr, 0.8, 0.8, 0.8, 0.8)
+        cairo_select_font_face(cr, "Iosevka", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
+        cairo_set_font_size(cr, 8)
+        cairo_move_to(cr, x + 11, legend_y + 7)
+        cairo_show_text(cr, graph_display_names[idx])
+    end
+
+    cairo_destroy(cr)
+    cairo_surface_destroy(cs)
+end
