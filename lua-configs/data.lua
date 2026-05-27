@@ -128,6 +128,14 @@ end
 
 local static_cache = {}
 
+local function read_sys(path)
+    local f = io.open(path, "r")
+    if not f then return nil end
+    local v = f:read("*l")
+    f:close()
+    return v
+end
+
 local function find_battery()
     local p = io.popen("ls /sys/class/power_supply/ 2>/dev/null")
     if not p then return nil end
@@ -140,14 +148,6 @@ local function find_battery()
     end
     p:close()
     return nil
-end
-
-local function read_sys(path)
-    local f = io.open(path, "r")
-    if not f then return nil end
-    local v = f:read("*l")
-    f:close()
-    return v
 end
 
 local function collect_cpu()
@@ -282,24 +282,106 @@ local function gpu_card()
     return "/sys/class/drm/card0"
 end
 
+local function detect_gpu_type(card)
+    local vendor = read_sys(card .. "/device/vendor") or ""
+    if vendor == "0x8086" then return "Integrated" end
+    if vendor == "0x10de" then return "Discrete" end
+    if vendor == "0x1002" then
+        local uevent = read_file(card .. "/device/uevent")
+        if uevent then
+            local slot = uevent:match("PCI_SLOT_NAME=%x+:(%x%x):")
+            if slot and tonumber(slot, 16) == 0 then return "Integrated" end
+            return "Discrete"
+        end
+    end
+    return "Unknown"
+end
+
+local function detect_gpu_mem(card, vendor)
+    local mem_used, mem_total = "0", "0"
+    if vendor == "0x8086" then
+        local lmem = read_sys(card .. "/device/lmem_total")
+        if lmem then
+            mem_total = tostring(math.floor(tonumber(lmem) / 1024 / 1024))
+        else
+            local meminfo = read_file("/proc/meminfo")
+            if meminfo then
+                local shmem = tonumber(meminfo:match("Shmem:%s+(%d+)"))
+                if shmem then mem_used = tostring(math.floor(shmem / 1024)) end
+
+                local uevent = read_file(card .. "/device/uevent")
+                if uevent then
+                    local slot = uevent:match("PCI_SLOT_NAME=([%x:%.]+)")
+                    if slot then
+                        local out = run("lspci -v -s " .. slot .. " 2>/dev/null")
+                        local sz, unit = out:match(", prefetchable%).-%[size=(%d+)([KM])")
+                        if sz then
+                            mem_total = unit == "M" and sz or tostring(math.floor(tonumber(sz) / 1024))
+                        end
+                    end
+                end
+
+                if mem_total == "0" then
+                    local total = tonumber(meminfo:match("MemTotal:%s+(%d+)"))
+                    if total then mem_total = tostring(math.floor(total / 1024)) end
+                end
+            end
+        end
+    elseif vendor == "0x10de" then
+        local out = run("nvidia-smi --query-gpu=memory.used,memory.total --format=csv,noheader,nounits 2>/dev/null")
+        local used, total = out:match("([%d.]+),%s*([%d.]+)")
+        if used and total then
+            mem_used = tostring(math.floor(tonumber(used)))
+            mem_total = tostring(math.floor(tonumber(total)))
+        end
+    elseif vendor == "0x1002" then
+        local total = read_sys(card .. "/device/mem_info_vram_total")
+        if total then
+            mem_total = tostring(math.floor(tonumber(total) / 1024 / 1024))
+        end
+    end
+    return mem_used, mem_total
+end
+
+local function parse_pp_dpm_sclk_cur(card)
+    local content = read_file(card .. "/device/pp_dpm_sclk")
+    if not content then return nil end
+    for line in content:gmatch("[^\n]+") do
+        local cur = line:match("%*%s*%d+:%s*([%d]+)")
+        if cur then return cur end
+    end
+    return nil
+end
+
+local function parse_pp_dpm_sclk_max(card)
+    local content = read_file(card .. "/device/pp_dpm_sclk")
+    if not content then return nil end
+    local last = nil
+    for line in content:gmatch("[^\n]+") do
+        local freq = line:match("%*?%s*%d+:%s*([%d]+)")
+        if freq then last = freq end
+    end
+    return last
+end
+
 local function collect_gpu()
     local card = gpu_card()
-    -- Try Intel frequency files, fall back to AMD/NVIDIA alternatives
+    local vendor = read_sys(card .. "/device/vendor") or ""
+
     local cur = read_sys(card .. "/gt_cur_freq_mhz")
         or read_sys(card .. "/gt_act_freq_mhz")
-        or read_sys(card .. "/device/pp_dpm_sclk") or ""
+        or parse_pp_dpm_sclk_cur(card) or ""
     local max = read_sys(card .. "/gt_max_freq_mhz")
         or read_sys(card .. "/gt_RP0_freq_mhz")
-        or read_sys(card .. "/device/pp_dpm_sclk") or ""
-    local shmem = 0
-    local meminfo = read_file("/proc/meminfo")
-    if meminfo then
-        shmem = tonumber(meminfo:match("Shmem:%s+(%d+)")) or 0
-    end
+        or parse_pp_dpm_sclk_max(card) or ""
+
+    local mem_used, mem_total = detect_gpu_mem(card, vendor)
+
     write_json("system", "gpu.json", {
         freq_cur = cur:gsub("%s+$", ""),
         freq_max = max:gsub("%s+$", ""),
-        mem_used = math.floor(shmem / 1024),
+        mem_used = mem_used,
+        mem_total = mem_total,
     })
 end
 
@@ -335,6 +417,7 @@ local function collect_static()
     static_cache = {
         gpu_model = model ~= "" and model or "N/A",
         gpu_driver = driver ~= "" and driver or "N/A",
+        gpu_type = detect_gpu_type(gpu_card()),
         kernel = kernel ~= "" and kernel or "N/A",
         mem_total = math.floor(mem_total / 1024),
         battery_tech = bat_tech:gsub("%s+$", ""),
@@ -369,7 +452,7 @@ end
 local function collect_storage()
     local raw = ""
     -- Primary: lsblk (available on most Linux systems)
-    local lsblk = run("command -v lsblk 2>/dev/null && lsblk -ro NAME,SIZE,TYPE,MOUNTPOINTS 2>/dev/null | "
+    local lsblk = run("command -v lsblk >/dev/null 2>/dev/null && lsblk -ro NAME,SIZE,TYPE,MOUNTPOINTS 2>/dev/null | "
         .. "awk '$3==\"disk\"||$3==\"rom\"{print \"─\"$1\"-------(\"$2\")\"}; "
         .. "$3==\"part\"{mnt=$4; if(length(mnt)>20) mnt=substr(mnt,1,17) \"...\"; "
         .. "print \"     └\"$1\"-----(\"$2\")_\" mnt}'")
@@ -477,7 +560,8 @@ function conky_gpu_mem_used()
 end
 
 function conky_gpu_mem_total()
-    return static_cache.mem_total or "0"
+    local d = read_json("system", "gpu.json")
+    return d and d.mem_total or "0"
 end
 
 function conky_gpu_temp()
@@ -495,8 +579,17 @@ function conky_gpu_temp()
             end
         end
     end
-    local die = temps:match('"temp_c"%s*:%s*([%d%.]+)')
-    return die or "N/A"
+    if (static_cache.gpu_type or "") == "Integrated" then
+        for entry in temps:gmatch('{[^}]+}') do
+            local label = entry:match('"label"%s*:%s*"([^"]+)"')
+            local name = entry:match('"name"%s*:%s*"([^"]+)"')
+            local temp = entry:match('"temp_c"%s*:%s*([%d%.]+)')
+            if temp and name and name:lower():find("coretemp") and label and label:lower():find("package") then
+                return temp
+            end
+        end
+    end
+    return "N/A"
 end
 
 function conky_gpu_freq_cur()
@@ -511,6 +604,27 @@ end
 
 function conky_kernel()
     return static_cache.kernel or "N/A"
+end
+
+function conky_gpu_type()
+    return static_cache.gpu_type or "N/A"
+end
+
+function conky_cpu_info()
+    local model = run("grep 'model name' /proc/cpuinfo | head -1 | cut -d: -f2 | sed 's/^ *//' 2>/dev/null"):gsub("%s+$", "")
+    return model ~= "" and model or "N/A"
+end
+
+function conky_cpu_freq_ghz()
+    local freq = read_sys("/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq")
+    if freq then return string.format("%.1f", tonumber(freq) / 1000000) end
+    return "N/A"
+end
+
+function conky_cpu_max_ghz()
+    local freq = read_sys("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq")
+    if freq then return string.format("%.1f", tonumber(freq) / 1000000) end
+    return "N/A"
 end
 
 -- ============================================================
@@ -606,4 +720,72 @@ function conky_storage_temp()
         end
     end
     return "N/A"
+end
+
+-- ============================================================
+-- CORE LAYOUT GENERATOR (used by cpurc via include)
+-- ============================================================
+
+local function count_cores()
+    local f = io.open("/proc/stat")
+    if not f then return 4 end
+    local n = 0
+    for line in f:lines() do
+        if line:match("^cpu%d") then n = n + 1 end
+    end
+    f:close()
+    return n > 0 and n or 4
+end
+
+local function build_core_block(first, count, total)
+    local gap, parts = 100, {}
+
+    parts[#parts + 1] = "${voffset 70}"
+
+    for i = 0, count - 1 do
+        local c, x = first + i, 5 + i * gap
+        if i == 0 then
+            parts[#parts + 1] = ('${voffset -85}${offset %d}${if_match ${cpu cpu%d} > 80}${color red}${else}${color1}${endif}${cpugauge cpu%d 55,95}'):format(x, c, c)
+        else
+            parts[#parts + 1] = ('${voffset -72}${goto %d}${if_match ${cpu cpu%d} > 80}${color red}${else}${color1}${endif}${cpugauge cpu%d 55,95}'):format(x, c, c)
+        end
+    end
+
+    local p = {}
+    for i = 0, count - 1 do
+        local c, x = first + i, 40 + i * gap
+        local suffix = (c == total - 1) and " ${color1}" or ""
+        if i == 0 then
+            p[#p + 1] = ('${voffset -10}${offset %d}${if_match ${cpu cpu%d} > 80}${color red}${else}${color1}${endif}${cpu cpu%d}%%'):format(x, c, c) .. suffix
+        else
+            p[#p + 1] = ('${goto %d}${if_match ${cpu cpu%d} > 80}${color red}${else}${color1}${endif}${cpu cpu%d}%%'):format(x, c, c) .. suffix
+        end
+    end
+    parts[#parts + 1] = table.concat(p, "")
+
+    local l = {}
+    for i = 0, count - 1 do
+        l[#l + 1] = ('${goto %d}%d'):format(50 + i * gap, first + i + 1)
+    end
+    parts[#parts + 1] = '${voffset -60}' .. table.concat(l, " ")
+
+    return table.concat(parts, "\n")
+end
+
+local function build_core_sections(n)
+    local blocks = {}
+    local i = 0
+    while i < n do
+        blocks[#blocks + 1] = build_core_block(i, math.min(4, n - i), n)
+        i = i + 4
+    end
+    return table.concat(blocks, "\n${voffset 140}\n")
+end
+
+-- Write core layout template at load time for cpurc to include
+ensure_dir(DATA_BASE .. "/system")
+write_file(DATA_BASE .. "/system/core_section.template", build_core_sections(count_cores()))
+
+function conky_core_section()
+    return build_core_sections(count_cores())
 end
