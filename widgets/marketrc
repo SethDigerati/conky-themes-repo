@@ -80,7 +80,7 @@ conky.config = {
     color5 = 'pink',
 
     lua_load = CONFIG_DIR .. '../lua-configs/finnhub.lua',
-    lua_draw_hook_post = 'conky_finnhub_draw',
+    lua_draw_hook_post = 'finnhub_draw',
 }
 
 conky.text = [[
