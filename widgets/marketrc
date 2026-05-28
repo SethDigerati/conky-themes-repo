@@ -5,7 +5,7 @@
 -- **********************************************************************
 
 local CONFIG_DIR = (debug.getinfo(1, "S").source:match("^@(.*/)") or "./")
-dofile(CONFIG_DIR .. "../lua-configs/finnhub.lua")
+dofile(CONFIG_DIR .. "../lua-configs/market.lua")
 
 conky.config = {
     -- Basic settings
@@ -79,7 +79,7 @@ conky.config = {
     color4 = 'green',
     color5 = 'red',
 
-    lua_load = CONFIG_DIR .. '../lua-configs/finnhub.lua',
+    lua_load = CONFIG_DIR .. '../lua-configs/market.lua',
 }
 
 conky.text = [[
