@@ -385,138 +385,48 @@ function conky_fn_build_table()
     return table.concat(lines, "\n")
 end
 
--- ============ CAIRO LINE GRAPH ============
-local graph_display_names = {"BTC", "ETH", "SOL", "BNB", "XRP"}
-local graph_colors = {
-    {0.95, 0.5, 0.1},   -- orange
-    {0.3, 0.5, 0.95},   -- blue
-    {0.6, 0.2, 0.8},    -- purple
-    {0.95, 0.85, 0.1},  -- yellow
-    {0.1, 0.8, 0.3},    -- green
-}
+-- ============ SPARKLINE ============
+local sparkline_names = {"BTC", "ETH", "SOL", "BNB", "XRP"}
 
-local function find_range(all_data)
-    local min_val, max_val = math.huge, -math.huge
-    local has_data = false
-    for _, data in ipairs(all_data) do
-        if data then
-            for _, v in ipairs(data) do
-                has_data = true
-                if v < min_val then min_val = v end
-                if v > max_val then max_val = v end
-            end
-        end
-    end
-    if not has_data then return -5, 5 end
-    if min_val == max_val then return min_val - 1, max_val + 1 end
-    local padding = (max_val - min_val) * 0.1
-    return min_val - padding, max_val + padding
-end
+-- 8-level Unicode sparkline characters
+local spark_chars = {"▁","▂","▃","▄","▅","▆","▇","█"}
 
-function conky_finnhub_draw()
-    if conky_window == nil then return end
-    if not cairo_xlib_surface_create then return end
-
-    local cs = cairo_xlib_surface_create(
-        conky_window.display, conky_window.drawable,
-        conky_window.visual, conky_window.width, conky_window.height
-    )
-    local cr = cairo_create(cs)
-
-    local graph_x, graph_y = 40, 240
-    local graph_w, graph_h = 340, 110
-
-    local all_data = {}
-    for _, name in ipairs(graph_display_names) do
-        all_data[#all_data + 1] = get_graph_data(name)
-    end
-
-    local min_val, max_val = find_range(all_data)
-    local range = max_val - min_val
-    if range == 0 then range = 1 end
-
-    cairo_set_source_rgba(cr, 0.08, 0.08, 0.08, 0.4)
-    cairo_rectangle(cr, graph_x, graph_y, graph_w, graph_h)
-    cairo_fill(cr)
-
-    cairo_set_line_width(cr, 0.5)
-    for i = 0, 4 do
-        local y = graph_y + graph_h * i / 4
-        cairo_set_source_rgba(cr, 1, 1, 1, 0.08)
-        cairo_move_to(cr, graph_x, math.floor(y) + 0.5)
-        cairo_line_to(cr, graph_x + graph_w, math.floor(y) + 0.5)
-        cairo_stroke(cr)
-
-        local label_val = max_val - (max_val - min_val) * i / 4
-        cairo_select_font_face(cr, "Iosevka", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
-        cairo_set_font_size(cr, 8)
-        cairo_move_to(cr, graph_x - 32, math.floor(y) + 3)
-        local label = string.format("%+.1f%%", label_val)
-        if label:find("+") then
-            cairo_set_source_rgba(cr, 0.5, 1, 0.5, 0.5)
-        elseif label:find("-") then
-            cairo_set_source_rgba(cr, 1, 0.5, 0.5, 0.5)
-        else
-            cairo_set_source_rgba(cr, 0.6, 0.6, 0.6, 0.6)
-        end
-        cairo_show_text(cr, label)
-    end
-
-    if min_val < 0 and max_val > 0 then
-        local zero_y = graph_y + graph_h - (0 - min_val) / range * graph_h
-        cairo_set_source_rgba(cr, 1, 1, 1, 0.2)
-        cairo_set_line_width(cr, 0.5)
-        cairo_move_to(cr, graph_x, math.floor(zero_y) + 0.5)
-        cairo_line_to(cr, graph_x + graph_w, math.floor(zero_y) + 0.5)
-        cairo_stroke(cr)
-    end
-
-    local months = {"J","F","M","A","M","J","J","A","S","O","N","D"}
-    for i = 1, 12 do
-        local x = graph_x + (i - 1) * graph_w / 11
-        cairo_set_source_rgba(cr, 0.6, 0.6, 0.6, 0.5)
-        cairo_select_font_face(cr, "Iosevka", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
-        cairo_set_font_size(cr, 7)
-        cairo_move_to(cr, x - 3, graph_y + graph_h + 10)
-        cairo_show_text(cr, months[i])
-    end
-
-    for idx = 1, 5 do
-        local data = all_data[idx]
+function conky_fn_sparkline()
+    local lines = {}
+    for _, name in ipairs(sparkline_names) do
+        local data = get_graph_data(name)
         if data and #data >= 2 then
-            local r, g, b = graph_colors[idx][1], graph_colors[idx][2], graph_colors[idx][3]
-            cairo_set_source_rgba(cr, r, g, b, 0.85)
-            cairo_set_line_width(cr, 1.5)
-
-            for i = 1, #data do
-                local x = graph_x + (i - 1) * graph_w / (#data - 1)
-                local y = graph_y + graph_h - (data[i] - min_val) / range * graph_h
-                if i == 1 then
-                    cairo_move_to(cr, x, y)
-                else
-                    cairo_line_to(cr, x, y)
-                end
+            local min_v, max_v = math.huge, -math.huge
+            for _, v in ipairs(data) do
+                if v < min_v then min_v = v end
+                if v > max_v then max_v = v end
             end
-            cairo_stroke(cr)
+            local range = max_v - min_v
+            if range == 0 then range = 1 end
+
+            local chars = {}
+            for _, v in ipairs(data) do
+                local idx = math.floor((v - min_v) / range * 7 + 0.5)
+                if idx < 0 then idx = 0 end
+                if idx > 7 then idx = 7 end
+                chars[#chars + 1] = spark_chars[idx + 1]
+            end
+
+            local latest = data[#data]
+            local color
+            if latest > 0 then
+                color = "${color4}"
+            elseif latest < 0 then
+                color = "${color5}"
+            else
+                color = "${color1}"
+            end
+            local fmt = string.format("%+.1f%%", latest)
+
+            lines[#lines + 1] = "${color1}" .. name .. "${color} " ..
+                table.concat(chars) .. "  " .. color .. fmt .. "${color}"
         end
     end
-
-    local legend_y = graph_y + graph_h + 22
-    local legend_start_x = 15
-    for idx = 1, 5 do
-        local x = legend_start_x + (idx - 1) * 78
-        local r, g, b = graph_colors[idx][1], graph_colors[idx][2], graph_colors[idx][3]
-        cairo_set_source_rgba(cr, r, g, b, 0.85)
-        cairo_rectangle(cr, x, legend_y, 8, 8)
-        cairo_fill(cr)
-
-        cairo_set_source_rgba(cr, 0.8, 0.8, 0.8, 0.8)
-        cairo_select_font_face(cr, "Iosevka", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
-        cairo_set_font_size(cr, 8)
-        cairo_move_to(cr, x + 11, legend_y + 7)
-        cairo_show_text(cr, graph_display_names[idx])
-    end
-
-    cairo_destroy(cr)
-    cairo_surface_destroy(cs)
+    if #lines == 0 then return "..." end
+    return table.concat(lines, "\n")
 end
