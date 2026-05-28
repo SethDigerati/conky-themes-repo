@@ -1,7 +1,7 @@
 -- Market Data Widget (CoinGecko + Open ER API)
--- Caches: /tmp/conky/finnhub/
+-- Caches: /tmp/conky/market/
 
-local DATA_BASE = "/tmp/conky/finnhub"
+local DATA_BASE = "/tmp/conky/market"
 
 local function read_file(path)
     local f = io.open(path, "r")
