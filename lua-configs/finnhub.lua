@@ -299,16 +299,3 @@ for i = 1, 12 do
     _G["conky_fn_cell_1y_" .. idx] = function() return format_cell("pct_1y", idx) end
 end
 
--- ============ TABLE BUILDER ============
-function conky_fn_build_table()
-    local lines = {}
-    for i = 1, 12 do
-        lines[#lines + 1] = string.format(
-            "${lua_parse conky_fn_name_%d}${goto 90}${lua_parse conky_fn_cell_1h_%d}${goto 140}${lua_parse conky_fn_cell_1d_%d}${goto 190}${lua_parse conky_fn_cell_1w_%d}${goto 240}${lua_parse conky_fn_cell_1m_%d}${goto 290}${lua_parse conky_fn_cell_1y_%d}",
-            i, i, i, i, i, i
-        )
-    end
-    return table.concat(lines, "\n")
-end
-
-
