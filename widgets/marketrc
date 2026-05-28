@@ -89,7 +89,5 @@ ${hr 2}${voffset -5}
 ]] .. conky_fn_build_table() .. [[
 ${voffset -10}${hr 2}${voffset -5}
 ${lua_parse conky_fn_forex_row}
-${voffset 4}${hr 2}${color2}TREND${color}${hr 2}
-${lua_parse conky_fn_sparkline}
-${stippled_hr}
+${voffset 8}${stippled_hr}
 ]]

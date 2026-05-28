@@ -50,21 +50,10 @@ local assets = {
     { name = "LTC", cg_id = "litecoin" },
 }
 
-local graph_cryptos = {
-    { name = "BTC", cg_id = "bitcoin" },
-    { name = "ETH", cg_id = "ethereum" },
-    { name = "SOL", cg_id = "solana" },
-    { name = "BNB", cg_id = "binancecoin" },
-    { name = "XRP", cg_id = "ripple" },
-}
-
 local last_markets_fetch = 0
 local last_forex_fetch = 0
-local last_chart_fetch = 0
-local chart_rotate_idx = 1
 local MARKETS_TTL = 240
 local FOREX_TTL = 240
-local CHART_TTL = 3600
 
 local location_cache = { country = "" }
 
@@ -211,56 +200,6 @@ local function fetch_forex()
     return true
 end
 
--- ============ FETCH CHART (one coin per cycle, for graph) ============
-local function fetch_chart(cg_id)
-    local url = "https://api.coingecko.com/api/v3/coins/" .. cg_id .. "/market_chart?vs_currency=usd&days=365"
-    local resp = run(CURL .. ' -s -S --connect-timeout 5 --max-time 15 "' .. url .. '" 2>/dev/null')
-    if not resp or resp == "" then return false end
-    if not resp:match('"prices"') then return false end
-
-    local json_file = DATA_BASE .. "/_chart.json"
-    local py_script = DATA_BASE .. "/_parse_chart.py"
-    write_file(json_file, resp)
-    write_file(py_script, [[
-import sys, json
-with open(sys.argv[1]) as f:
-    d = json.load(f)
-n = len(d["prices"])
-if n < 3:
-    sys.exit(0)
-step = max(1, n // 12)
-base = d["prices"][0][1]
-for i in range(12):
-    idx = min(1 + i * step, n) - 1
-    pct = (d["prices"][idx][1] - base) / base * 100
-    print("{:.6f}".format(pct))
-]])
-    local output = run('python3 "' .. py_script .. '" "' .. json_file .. '" 2>/dev/null')
-    os.remove(py_script)
-    os.remove(json_file)
-
-    if not output or output == "" then return false end
-
-    local graph = {}
-    for line in output:gmatch("[^\n]+") do
-        local val = tonumber(line)
-        if val then graph[#graph + 1] = val end
-    end
-
-    if #graph < 2 then return false end
-
-    local asset_name = nil
-    for _, a in ipairs(assets) do
-        if a.cg_id == cg_id then asset_name = a.name; break end
-    end
-    if not asset_name then return false end
-
-    local existing = read_cache(asset_name) or {}
-    existing.graph = graph
-    write_cache(asset_name, existing)
-    return true
-end
-
 -- ============ MAIN UPDATE ============
 function conky_update_finnhub()
     fetch_location()
@@ -283,16 +222,6 @@ function conky_update_finnhub()
         end
     end
 
-    -- Chart (1 coin per cycle, rotating, every 3600s)
-    if now - last_chart_fetch >= CHART_TTL then
-        local c = graph_cryptos[chart_rotate_idx]
-        if fetch_chart(c.cg_id) then
-            chart_rotate_idx = (chart_rotate_idx % #graph_cryptos) + 1
-            last_chart_fetch = now
-            got_data = true
-        end
-    end
-
     return ""
 end
 
@@ -303,12 +232,6 @@ local function get_pct(asset_idx, field)
     local data = read_cache(asset.name)
     if not data then return nil end
     return data[field]
-end
-
-local function get_graph_data(asset_name)
-    local data = read_cache(asset_name)
-    if not data or not data.graph then return nil end
-    return data.graph
 end
 
 -- ============ FOREX ============
@@ -385,48 +308,4 @@ function conky_fn_build_table()
     return table.concat(lines, "\n")
 end
 
--- ============ SPARKLINE ============
-local sparkline_names = {"BTC", "ETH", "SOL", "BNB", "XRP"}
 
--- 8-level Unicode sparkline characters
-local spark_chars = {"▁","▂","▃","▄","▅","▆","▇","█"}
-
-function conky_fn_sparkline()
-    local lines = {}
-    for _, name in ipairs(sparkline_names) do
-        local data = get_graph_data(name)
-        if data and #data >= 2 then
-            local min_v, max_v = math.huge, -math.huge
-            for _, v in ipairs(data) do
-                if v < min_v then min_v = v end
-                if v > max_v then max_v = v end
-            end
-            local range = max_v - min_v
-            if range == 0 then range = 1 end
-
-            local chars = {}
-            for _, v in ipairs(data) do
-                local idx = math.floor((v - min_v) / range * 7 + 0.5)
-                if idx < 0 then idx = 0 end
-                if idx > 7 then idx = 7 end
-                chars[#chars + 1] = spark_chars[idx + 1]
-            end
-
-            local latest = data[#data]
-            local color
-            if latest > 0 then
-                color = "${color4}"
-            elseif latest < 0 then
-                color = "${color5}"
-            else
-                color = "${color1}"
-            end
-            local fmt = string.format("%+.1f%%", latest)
-
-            lines[#lines + 1] = "${color1}" .. name .. "${color} " ..
-                table.concat(chars) .. "  " .. color .. fmt .. "${color}"
-        end
-    end
-    if #lines == 0 then return "..." end
-    return table.concat(lines, "\n")
-end
