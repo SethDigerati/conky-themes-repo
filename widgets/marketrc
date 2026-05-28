@@ -84,7 +84,7 @@ conky.config = {
 
 conky.text = [[
 ${lua_parse conky_update_finnhub}${color2}MARKET ${color0}${voffset -2}${hr 1}
-${voffset -2}${color2}ASSET${goto 120}1d${goto 190}1w${goto 250}1m${goto 320}1y${color}${voffset -10}
+${voffset -2}${color2}ASSET${goto 90}1h${goto 140}1d${goto 190}1w${goto 240}1m${goto 290}1y${color}${voffset -10}
 ${hr 2}${voffset -5}
 ]] .. conky_fn_build_table() .. [[
 ${goto 0}${voffset 10}${hr 2}

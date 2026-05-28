@@ -136,7 +136,7 @@ local function fetch_markets()
         ids[#ids + 1] = a.cg_id
     end
     local url = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids="
-        .. table.concat(ids, ",") .. "&price_change_percentage=7d,30d,1y&order=market_cap_desc"
+        .. table.concat(ids, ",") .. "&price_change_percentage=1h,7d,30d,1y&order=market_cap_desc"
 
     local resp = run(CURL .. ' -s -S --connect-timeout 5 --max-time 15 "' .. url .. '" 2>/dev/null')
     if not resp or resp == "" then return false end
@@ -150,6 +150,7 @@ with open(sys.argv[1]) as f:
     data = json.load(f)
 for d in data:
     print(d["id"], d.get("current_price", ""),
+          d.get("price_change_percentage_1h_in_currency", ""),
           d.get("price_change_percentage_24h", ""),
           d.get("price_change_percentage_7d_in_currency", ""),
           d.get("price_change_percentage_30d_in_currency", ""),
@@ -163,8 +164,8 @@ for d in data:
 
     local got_any = false
     for line in output:gmatch("[^\n]+") do
-        local cg_id, price, pct_24h, pct_7d, pct_30d, pct_1y =
-            line:match("^(%S+)%s+(%S*)%s+(%S*)%s+(%S*)%s+(%S*)%s+(%S*)%s*$")
+        local cg_id, price, pct_1h, pct_24h, pct_7d, pct_30d, pct_1y =
+            line:match("^(%S+)%s+(%S*)%s+(%S*)%s+(%S*)%s+(%S*)%s+(%S*)%s+(%S*)%s*$")
         if cg_id and price ~= "" then
             local asset = nil
             for _, a in ipairs(assets) do
@@ -172,6 +173,7 @@ for d in data:
             end
             if asset then
                 local data = { cur = tonumber(price) }
+                if pct_1h ~= "" then data.pct_1h = tonumber(pct_1h) end
                 if pct_24h ~= "" then data.pct_1d = tonumber(pct_24h) end
                 if pct_7d ~= "" then data.pct_1w = tonumber(pct_7d) end
                 if pct_30d ~= "" then data.pct_1m = tonumber(pct_30d) end
@@ -279,17 +281,18 @@ local function format_cell(field, idx)
     if val == nil then return " --" end
     local fmt = string.format("%+.1f", val)
     if val > 0 then
-        return "${color4}▲${color} " .. fmt:sub(2) .. "%"
+        return "${color4}▲${color}" .. fmt:sub(2) .. "%"
     elseif val < 0 then
-        return "${color5}▼${color} " .. fmt:sub(2) .. "%"
+        return "${color5}▼${color}" .. fmt:sub(2) .. "%"
     else
-        return "${color1}─${color} 0.0%"
+        return "${color1}─${color}0.0%"
     end
 end
 
 for i = 1, 12 do
     local idx = i
     _G["conky_fn_name_" .. idx] = function() return assets[idx].name end
+    _G["conky_fn_cell_1h_" .. idx] = function() return format_cell("pct_1h", idx) end
     _G["conky_fn_cell_1d_" .. idx] = function() return format_cell("pct_1d", idx) end
     _G["conky_fn_cell_1w_" .. idx] = function() return format_cell("pct_1w", idx) end
     _G["conky_fn_cell_1m_" .. idx] = function() return format_cell("pct_1m", idx) end
@@ -301,8 +304,8 @@ function conky_fn_build_table()
     local lines = {}
     for i = 1, 12 do
         lines[#lines + 1] = string.format(
-            "${lua_parse conky_fn_name_%d}${goto 95}${lua_parse conky_fn_cell_1d_%d}${goto 160}${lua_parse conky_fn_cell_1w_%d}${goto 225}${lua_parse conky_fn_cell_1m_%d}${goto 290}${lua_parse conky_fn_cell_1y_%d}",
-            i, i, i, i, i
+            "${lua_parse conky_fn_name_%d}${goto 90}${lua_parse conky_fn_cell_1h_%d}${goto 140}${lua_parse conky_fn_cell_1d_%d}${goto 190}${lua_parse conky_fn_cell_1w_%d}${goto 240}${lua_parse conky_fn_cell_1m_%d}${goto 290}${lua_parse conky_fn_cell_1y_%d}",
+            i, i, i, i, i, i
         )
     end
     return table.concat(lines, "\n")
