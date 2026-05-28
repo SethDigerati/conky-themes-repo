@@ -66,7 +66,7 @@ conky.config = {
     use_xft = true,
     draw_shades = true,
     xftalpha = 100,
-    font = 'Iosevka:size=10',
+    font = 'Iosevka:size=11',
     
     -- Colors
     default_color = 'white',
@@ -77,17 +77,17 @@ conky.config = {
     color2 = '#FFE020',
     color3 = 'black',
     color4 = 'green',
-    color5 = 'pink',
+    color5 = 'red',
 
     lua_load = CONFIG_DIR .. '../lua-configs/finnhub.lua',
 }
 
 conky.text = [[
 ${lua_parse conky_update_finnhub}${color2}MARKET ${color0}${voffset -2}${hr 1}
-${color1}ASSET${goto 95}1d${goto 160}1w${goto 225}1m${goto 290}1y${color}
+${voffset -2}${color2}ASSET${goto 120}1d${goto 190}1w${goto 250}1m${goto 320}1y${color}${voffset -10}
 ${hr 2}${voffset -5}
 ]] .. conky_fn_build_table() .. [[
-${voffset -10}${hr 2}${voffset -5}
+${goto 0}${voffset 10}${hr 2}
 ${lua_parse conky_fn_forex_row}
-${voffset 8}${stippled_hr}
+${stippled_hr}
 ]]
