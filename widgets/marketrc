@@ -84,10 +84,21 @@ conky.config = {
 
 conky.text = [[
 ${lua_parse conky_update_finnhub}${color2}MARKET ${color0}${voffset -2}${hr 1}
-${voffset -2}${color2}ASSET${goto 90}1h${goto 140}1d${goto 190}1w${goto 240}1m${goto 290}1y${color}${voffset -10}
+${voffset -2}${color2}ASSET${goto 110}1h${goto 170}1d${goto 230}1w${goto 290}1m${goto 360}1y${color}${voffset -10}
 ${hr 2}${voffset -5}
-]] .. conky_fn_build_table() .. [[
-${goto 0}${voffset 10}${hr 2}
+${lua_parse conky_fn_name_1}${goto 90}${lua_parse conky_fn_cell_1h_1}${goto 150}${lua_parse conky_fn_cell_1d_1}${goto 210}${lua_parse conky_fn_cell_1w_1}${goto 270}${lua_parse conky_fn_cell_1m_1}${goto 340}${lua_parse conky_fn_cell_1y_1}
+${lua_parse conky_fn_name_2}${goto 90}${lua_parse conky_fn_cell_1h_2}${goto 150}${lua_parse conky_fn_cell_1d_2}${goto 210}${lua_parse conky_fn_cell_1w_2}${goto 270}${lua_parse conky_fn_cell_1m_2}${goto 340}${lua_parse conky_fn_cell_1y_2}
+${lua_parse conky_fn_name_3}${goto 90}${lua_parse conky_fn_cell_1h_3}${goto 150}${lua_parse conky_fn_cell_1d_3}${goto 210}${lua_parse conky_fn_cell_1w_3}${goto 270}${lua_parse conky_fn_cell_1m_3}${goto 340}${lua_parse conky_fn_cell_1y_3}
+${lua_parse conky_fn_name_4}${goto 90}${lua_parse conky_fn_cell_1h_4}${goto 150}${lua_parse conky_fn_cell_1d_4}${goto 210}${lua_parse conky_fn_cell_1w_4}${goto 270}${lua_parse conky_fn_cell_1m_4}${goto 340}${lua_parse conky_fn_cell_1y_4}
+${lua_parse conky_fn_name_5}${goto 90}${lua_parse conky_fn_cell_1h_5}${goto 150}${lua_parse conky_fn_cell_1d_5}${goto 210}${lua_parse conky_fn_cell_1w_5}${goto 270}${lua_parse conky_fn_cell_1m_5}${goto 340}${lua_parse conky_fn_cell_1y_5}
+${lua_parse conky_fn_name_6}${goto 90}${lua_parse conky_fn_cell_1h_6}${goto 150}${lua_parse conky_fn_cell_1d_6}${goto 210}${lua_parse conky_fn_cell_1w_6}${goto 270}${lua_parse conky_fn_cell_1m_6}${goto 340}${lua_parse conky_fn_cell_1y_6}
+${lua_parse conky_fn_name_7}${goto 90}${lua_parse conky_fn_cell_1h_7}${goto 150}${lua_parse conky_fn_cell_1d_7}${goto 210}${lua_parse conky_fn_cell_1w_7}${goto 270}${lua_parse conky_fn_cell_1m_7}${goto 340}${lua_parse conky_fn_cell_1y_7}
+${lua_parse conky_fn_name_8}${goto 90}${lua_parse conky_fn_cell_1h_8}${goto 150}${lua_parse conky_fn_cell_1d_8}${goto 210}${lua_parse conky_fn_cell_1w_8}${goto 270}${lua_parse conky_fn_cell_1m_8}${goto 340}${lua_parse conky_fn_cell_1y_8}
+${lua_parse conky_fn_name_9}${goto 90}${lua_parse conky_fn_cell_1h_9}${goto 150}${lua_parse conky_fn_cell_1d_9}${goto 210}${lua_parse conky_fn_cell_1w_9}${goto 270}${lua_parse conky_fn_cell_1m_9}${goto 340}${lua_parse conky_fn_cell_1y_9}
+${lua_parse conky_fn_name_10}${goto 90}${lua_parse conky_fn_cell_1h_10}${goto 150}${lua_parse conky_fn_cell_1d_10}${goto 210}${lua_parse conky_fn_cell_1w_10}${goto 270}${lua_parse conky_fn_cell_1m_10}${goto 340}${lua_parse conky_fn_cell_1y_10}
+${lua_parse conky_fn_name_11}${goto 90}${lua_parse conky_fn_cell_1h_11}${goto 150}${lua_parse conky_fn_cell_1d_11}${goto 210}${lua_parse conky_fn_cell_1w_11}${goto 270}${lua_parse conky_fn_cell_1m_11}${goto 340}${lua_parse conky_fn_cell_1y_11}
+${lua_parse conky_fn_name_12}${goto 90}${lua_parse conky_fn_cell_1h_12}${goto 150}${lua_parse conky_fn_cell_1d_12}${goto 210}${lua_parse conky_fn_cell_1w_12}${goto 270}${lua_parse conky_fn_cell_1m_12}${goto 340}${lua_parse conky_fn_cell_1y_12}
+${goto 0}${voffset -10}${hr 2}${voffset -5}
 ${lua_parse conky_fn_forex_row}
-${stippled_hr}
+${voffset -10}${stippled_hr}
 ]]
