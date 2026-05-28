@@ -251,7 +251,7 @@ function conky_fn_forex_row()
         local rate = get_forex_rate(local_code)
         local sym = currency_symbols[local_code] or local_code
         if rate then
-            parts[#parts + 1] = "${color1}1$ = " .. string.format("%.2f", rate) .. " " .. sym .. "${color}"
+            parts[#parts + 1] = "${color1}1 USD = " .. string.format("%.2f", rate) .. " " .. sym .. "${color}"
         end
     end
 
@@ -259,14 +259,14 @@ function conky_fn_forex_row()
     if eur_rate then
         if #parts > 0 then parts[#parts + 1] = "  ${color2}|${color}  " end
         local sym = currency_symbols["EUR"] or "€"
-        parts[#parts + 1] = "${color1}1$ = " .. string.format("%.2f", eur_rate) .. " " .. sym .. "${color}"
+        parts[#parts + 1] = "${color1}1 USD = " .. string.format("%.2f", eur_rate) .. " " .. sym .. "${color}"
     end
 
     local jpy_rate = get_forex_rate("JPY")
     if jpy_rate then
         if #parts > 0 then parts[#parts + 1] = "  ${color2}|${color}  " end
         local sym = currency_symbols["JPY"] or "¥"
-        parts[#parts + 1] = "${color1}1$ = " .. string.format("%.2f", jpy_rate) .. " " .. sym .. "${color}"
+        parts[#parts + 1] = "${color1}1 USD = " .. string.format("%.2f", jpy_rate) .. " " .. sym .. "${color}"
     end
 
     if #parts == 0 then return "..." end
@@ -279,11 +279,11 @@ local function format_cell(field, idx)
     if val == nil then return " --" end
     local fmt = string.format("%+.1f", val)
     if val > 0 then
-        return "${color4}▲${color} " .. fmt:sub(2)
+        return "${color4}▲${color} " .. fmt:sub(2) .. "%"
     elseif val < 0 then
-        return "${color5}▼${color} " .. fmt
+        return "${color5}▼${color} " .. fmt:sub(2) .. "%"
     else
-        return "${color1}─${color} 0.0 "
+        return "${color1}─${color} 0.0%"
     end
 end
 
