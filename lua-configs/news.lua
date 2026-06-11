@@ -7,7 +7,6 @@ local API_KEY = ""
 local NEWS_TTL = 3000
 
 local last_fetch = {}
-local news_cache = {}
 local TOPICS = {
     tech = "technology",
     science = "science",
@@ -85,21 +84,14 @@ local function fetch_topic(topic_key)
     os.execute(cmd .. ' > "' .. tmpfile .. '" 2>/dev/null && mv "' .. tmpfile .. '" "' .. outfile .. '" &')
 
     last_fetch[topic_key] = now
-    news_cache[topic_key] = nil
 end
 
 local function parse_articles(topic_key)
     local content = read_file(DATA_BASE .. "/news/" .. topic_key .. ".json")
-    if not content or content == "" then
-        news_cache[topic_key] = {}
-        return
-    end
+    if not content or content == "" then return nil end
 
     local data_start = content:find('"data"%s*:%s*%[')
-    if not data_start then
-        news_cache[topic_key] = {}
-        return
-    end
+    if not data_start then return nil end
 
     local data_section = content:sub(data_start)
     local articles, pos = {}, 1
@@ -118,19 +110,13 @@ local function parse_articles(topic_key)
             local pub_date = extract_json_str(obj, "published_at") or ""
 
             if title ~= "" then
-                if #source > 12 then
-                    source = source:sub(1, 10) .. ".."
-                end
-                if #title > 55 then
-                    title = title:sub(1, 52) .. "..."
-                end
 
                 local date_str, time_str = "", ""
                 if pub_date then
                     local y, m, d, h, mi = pub_date:match("(%d%d%d%d)-(%d%d)-(%d%d)T(%d%d):(%d%d)")
                     if y then
                         date_str = string.format("%s.%s.%s", d, m, y:sub(3, 4))
-                        time_str = string.format("%s;%s", h, mi)
+                        time_str = string.format("%s:%s", h, mi)
                     end
                 end
 
@@ -145,29 +131,59 @@ local function parse_articles(topic_key)
         end
     end
 
-    news_cache[topic_key] = articles
+    if #articles == 0 then return nil end
+    return articles
 end
 
-local function get_news_field(topic_key, article_num, field)
-    if not news_cache[topic_key] then
-        parse_articles(topic_key)
+local function word_wrap(text, max)
+    if #text <= max then return text end
+    local lines = {}
+    while #text > max do
+        local pos = text:sub(1, max):match("^.+%s()")
+        if not pos then pos = max + 1 end
+        table.insert(lines, text:sub(1, pos - 1))
+        text = text:sub(pos + 1)
     end
-    if not news_cache[topic_key] or #news_cache[topic_key] < article_num then
-        return ""
+    if #text > 0 then table.insert(lines, text) end
+    return table.concat(lines, "\n")
+end
+
+local function load_topic(topic_key)
+    local articles = parse_articles(topic_key)
+    if not articles then return end
+
+    for i = 1, 2 do
+        if articles[i] then
+            _G["news_" .. topic_key .. "_" .. i .. "_title"]   = word_wrap(articles[i].title or "", 50)
+            _G["news_" .. topic_key .. "_" .. i .. "_source"]  = articles[i].source or ""
+            _G["news_" .. topic_key .. "_" .. i .. "_country"] = articles[i].country or ""
+            _G["news_" .. topic_key .. "_" .. i .. "_date"]    = articles[i].date or ""
+            _G["news_" .. topic_key .. "_" .. i .. "_time"]    = articles[i].time or ""
+        end
     end
-    local val = news_cache[topic_key][article_num][field]
-    return val or ""
 end
 
 local fetch_order = { "tech", "science", "space", "politics", "entertainment", "finance", "weather", "sports", "f1" }
 local fetch_index = 1
 
+-- Initialize all globals to empty strings (so template renders immediately)
+for _, topic in ipairs(fetch_order) do
+    for art = 1, 2 do
+        _G["news_" .. topic .. "_" .. art .. "_title"]   = ""
+        _G["news_" .. topic .. "_" .. art .. "_source"]  = ""
+        _G["news_" .. topic .. "_" .. art .. "_country"] = ""
+        _G["news_" .. topic .. "_" .. art .. "_date"]    = ""
+        _G["news_" .. topic .. "_" .. art .. "_time"]    = ""
+    end
+end
+
 function conky_update_news()
     if API_KEY == "" then return end
-    for _ = 1, 3 do
-        fetch_topic(fetch_order[fetch_index])
-        fetch_index = fetch_index + 1
-        if fetch_index > #fetch_order then fetch_index = 1 end
+    fetch_topic(fetch_order[fetch_index])
+    fetch_index = fetch_index + 1
+    if fetch_index > #fetch_order then fetch_index = 1 end
+    for _, topic in ipairs(fetch_order) do
+        load_topic(topic)
     end
 end
 
@@ -177,9 +193,9 @@ local field_names = { "title", "source", "country", "date", "time" }
 for _, topic in ipairs(fetch_order) do
     for art = 1, 2 do
         for _, fname in ipairs(field_names) do
-            local t, a, f = topic, art, fname
+            local g = "news_" .. topic .. "_" .. art .. "_" .. fname
             _G["conky_news_" .. topic .. "_" .. art .. "_" .. fname] = function()
-                return get_news_field(t, a, f)
+                return _G[g]
             end
         end
     end
