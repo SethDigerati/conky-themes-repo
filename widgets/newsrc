@@ -64,7 +64,7 @@ conky.config = {
     use_xft = true,
     draw_shades = true,
     xftalpha = 100,
-    font = 'Iosevka:size=11',
+    font = 'Iosevka:size=10',
 
     -- Colors
     default_color = 'white',
