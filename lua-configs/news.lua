@@ -2,11 +2,12 @@ local script_dir = debug.getinfo(1, "S").source:match("^@(.*/)")
 if not script_dir then script_dir = "" end
 
 local DATA_BASE = "/tmp/conky"
-local CURL = "/usr/bin/curl"
+local CURL = "/usr/bin/curl --max-time 8"
 local API_KEY = ""
 local NEWS_TTL = 3000
 
 local last_fetch = {}
+local news_cache = {}
 local TOPICS = {
     tech = "technology",
     science = "science",
@@ -23,30 +24,12 @@ local function ensure_dir(path)
     os.execute("mkdir -p \"" .. path .. "\" 2>/dev/null")
 end
 
-local function write_file(path, content)
-    local tmp = path .. ".tmp"
-    local f = io.open(tmp, "w")
-    if not f then return false end
-    f:write(content)
-    f:close()
-    os.rename(tmp, path)
-    return true
-end
-
 local function read_file(path)
     local f = io.open(path, "r")
     if not f then return nil end
     local c = f:read("*a")
     f:close()
     return c
-end
-
-local function run(cmd)
-    local f = io.popen(cmd)
-    if not f then return "" end
-    local s = f:read("*a")
-    f:close()
-    return s:gsub("^%s+", ""):gsub("%s+$", "")
 end
 
 local function read_env(target_key)
@@ -95,63 +78,33 @@ local function fetch_topic(topic_key)
         .. topic:gsub(" ", "%%20")
         .. "&language=en"
 
+    local outfile = DATA_BASE .. "/news/" .. topic_key .. ".json"
+    local tmpfile = outfile .. ".tmp"
     local cmd = CURL .. ' -s -H "x-api-key: ' .. API_KEY .. '" "' .. url .. '"'
-    local response = run(cmd)
 
-    if response and response ~= "" and response:sub(1, 1) == "{" then
-        write_file(DATA_BASE .. "/news/" .. topic_key .. ".json", response)
-        last_fetch[topic_key] = now
-    end
+    os.execute(cmd .. ' > "' .. tmpfile .. '" 2>/dev/null && mv "' .. tmpfile .. '" "' .. outfile .. '" &')
+
+    last_fetch[topic_key] = now
+    news_cache[topic_key] = nil
 end
 
-local function format_article(source, title, country, pub_date)
-    if #source > 12 then
-        source = source:sub(1, 10) .. ".."
-    end
-
-    if #title > 55 then
-        title = title:sub(1, 52) .. "..."
-    end
-
-    local date_str = ""
-    if pub_date then
-        local y, m, d, h, mi = pub_date:match("(%d%d%d%d)-(%d%d)-(%d%d)T(%d%d):(%d%d)")
-        if y then
-            date_str = string.format("%s.%s.%s, %s;%s", d, m, y:sub(3, 4), h, mi)
-        end
-    end
-
-    local line1 = "${color1}[" .. source .. "] ${color0}" .. title
-    local meta_parts = {}
-    if country and country ~= "" then
-        table.insert(meta_parts, "◎ " .. country)
-    end
-    if date_str ~= "" then
-        table.insert(meta_parts, "• " .. date_str)
-    end
-    local line2 = "${alignr}" .. table.concat(meta_parts, "  ")
-
-    return line1 .. "\n" .. line2
-end
-
-local function get_news_block(topic_key)
+local function parse_articles(topic_key)
     local content = read_file(DATA_BASE .. "/news/" .. topic_key .. ".json")
     if not content or content == "" then
-        if API_KEY == "" then
-            return "${color3}Configure NEWS_API_KEY in .env${color}"
-        end
-        return ""
+        news_cache[topic_key] = {}
+        return
     end
 
     local data_start = content:find('"data"%s*:%s*%[')
     if not data_start then
-        return "${color3}No news${color}"
+        news_cache[topic_key] = {}
+        return
     end
 
     local data_section = content:sub(data_start)
-    local lines, count, pos = {}, 0, 1
+    local articles, pos = {}, 1
 
-    while count < 2 do
+    while #articles < 2 do
         local s, e = data_section:find('{.-}', pos)
         if not s then break end
 
@@ -165,32 +118,69 @@ local function get_news_block(topic_key)
             local pub_date = extract_json_str(obj, "published_at") or ""
 
             if title ~= "" then
-                table.insert(lines, format_article(source, title, country, pub_date))
-                count = count + 1
+                if #source > 12 then
+                    source = source:sub(1, 10) .. ".."
+                end
+                if #title > 55 then
+                    title = title:sub(1, 52) .. "..."
+                end
+
+                local date_str, time_str = "", ""
+                if pub_date then
+                    local y, m, d, h, mi = pub_date:match("(%d%d%d%d)-(%d%d)-(%d%d)T(%d%d):(%d%d)")
+                    if y then
+                        date_str = string.format("%s.%s.%s", d, m, y:sub(3, 4))
+                        time_str = string.format("%s;%s", h, mi)
+                    end
+                end
+
+                table.insert(articles, {
+                    title = title,
+                    source = source,
+                    country = country,
+                    date = date_str,
+                    time = time_str,
+                })
             end
         end
     end
 
-    if #lines == 0 then
-        return "${color3}No news${color}"
-    end
-
-    return table.concat(lines, "\n")
+    news_cache[topic_key] = articles
 end
+
+local function get_news_field(topic_key, article_num, field)
+    if not news_cache[topic_key] then
+        parse_articles(topic_key)
+    end
+    if not news_cache[topic_key] or #news_cache[topic_key] < article_num then
+        return ""
+    end
+    local val = news_cache[topic_key][article_num][field]
+    return val or ""
+end
+
+local fetch_order = { "tech", "science", "space", "politics", "entertainment", "finance", "weather", "sports", "f1" }
+local fetch_index = 1
 
 function conky_update_news()
     if API_KEY == "" then return end
-    for k in pairs(TOPICS) do
-        fetch_topic(k)
+    for _ = 1, 3 do
+        fetch_topic(fetch_order[fetch_index])
+        fetch_index = fetch_index + 1
+        if fetch_index > #fetch_order then fetch_index = 1 end
     end
 end
 
-function conky_news_tech() return get_news_block("tech") end
-function conky_news_science() return get_news_block("science") end
-function conky_news_space() return get_news_block("space") end
-function conky_news_politics() return get_news_block("politics") end
-function conky_news_entertainment() return get_news_block("entertainment") end
-function conky_news_finance() return get_news_block("finance") end
-function conky_news_weather() return get_news_block("weather") end
-function conky_news_sports() return get_news_block("sports") end
-function conky_news_f1() return get_news_block("f1") end
+function conky_news_source() return "SOURCE: FreeNewsApi.io" end
+
+local field_names = { "title", "source", "country", "date", "time" }
+for _, topic in ipairs(fetch_order) do
+    for art = 1, 2 do
+        for _, fname in ipairs(field_names) do
+            local t, a, f = topic, art, fname
+            _G["conky_news_" .. topic .. "_" .. art .. "_" .. fname] = function()
+                return get_news_field(t, a, f)
+            end
+        end
+    end
+end
