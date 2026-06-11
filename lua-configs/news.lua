@@ -12,11 +12,9 @@ local TOPICS = {
     science = "science",
     space = "space",
     politics = "politics",
-    entertainment = "entertainment",
     finance = "finance",
     weather = "environment",
     sports = "sports",
-    f1 = "motor sports",
 }
 
 local function ensure_dir(path)
@@ -93,7 +91,7 @@ local function parse_articles(topic_key)
     local data_start = content:find('"data"%s*:%s*%[')
     if not data_start then return nil end
 
-    local data_section = content:sub(data_start)
+    local data_section = content:sub(data_start):gsub("%s+", " ")
     local articles, pos = {}, 1
 
     while #articles < 2 do
@@ -116,7 +114,7 @@ local function parse_articles(topic_key)
                     local y, m, d, h, mi = pub_date:match("(%d%d%d%d)-(%d%d)-(%d%d)T(%d%d):(%d%d)")
                     if y then
                         date_str = string.format("%s.%s.%s", d, m, y:sub(3, 4))
-                        time_str = string.format("%s:%s", h, mi)
+                        time_str = string.format("%s%s", h, mi)
                     end
                 end
 
@@ -163,7 +161,7 @@ local function load_topic(topic_key)
     end
 end
 
-local fetch_order = { "tech", "science", "space", "politics", "entertainment", "finance", "weather", "sports", "f1" }
+local fetch_order = { "tech", "science", "space", "politics", "finance", "weather", "sports" }
 local fetch_index = 1
 
 -- Initialize all globals to empty strings (so template renders immediately)
