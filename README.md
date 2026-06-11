@@ -10,32 +10,66 @@ A collection of modern, beautiful Conky themes and widgets for Linux desktops.
 
 ### Overload - System Monitor
 
-![Overload Preview](assets/overload_example.png)
-![Right Preview](assets/example1.png)
-![Left Preview](assets/example2.png)
+![CPU](assets/cpurc.png) ![GPU](assets/gpurc.png)
+![Memory](assets/memoryrc.png) ![Network](assets/networkrc.png)
+![System](assets/systemrc.png) ![Weather](assets/weatherrc.png)
 
 **Features:**
 
 - Multi-core CPU monitoring
 - Memory & network statistics  
 - Process information
+- GPU monitoring
 - Clean, modern design
 - Zero dependencies beyond Conky
 
 ---
 
+### News - Headlines Widget
+
+![News](assets/newsrc.png)
+
+**Features:**
+
+- 4 categories: TECH, SCIENCE, SPACE, CLIMATE
+- Powered by NewsAPI.org
+- Background fetching with loading indicator
+
+---
+
 ### LastFM - Music Display
 
-![LastFM Preview](assets/lastfm_example.png)
+![LastFM](assets/lastfmrc.png)
 
 **Features:**
 
 - Real-time Last.fm integration
-
 - Album artwork display
 - Personal play statistics
 - Track duration & info
 - Fully portable design
+
+---
+
+### Market - Stock Ticker
+
+![Market](assets/marketrc.png)
+
+**Features:**
+
+- Real-time market data
+- Powered by Market API
+
+---
+
+### Quote - Daily Inspiration
+
+![Quote](assets/quoterc.png)
+
+**Features:**
+
+- Inspirational quotes
+- Random selection
 
 ---
 
@@ -60,25 +94,33 @@ git sparse-checkout set widgets
 ### Running Themes
 
 ```bash
-# System monitor and widget configs
+# System monitor
 conky -c widgets/cpurc
-
-# Other widgets
 conky -c widgets/gpurc
-conky -c widgets/networkrc
 conky -c widgets/memoryrc
+conky -c widgets/networkrc
+conky -c widgets/systemrc
 conky -c widgets/weatherrc
+
+# News
+conky -c widgets/newsrc
 
 # Last.fm (Music)
 conky -c widgets/lastfmrc
+
+# Market
+conky -c widgets/marketrc
+
+# Quote
+conky -c widgets/quoterc
 ```
 
-### Last.fm API Credentials
+### API Credentials
 
-Copy [.env.template](.env.template) to `api.env` (preferred) or `.env`, then set:
+Copy [.env.template](.env.template) to `api.env` (preferred) or `.env`, then set the required keys:
 
-- `LASTFM_API_KEY`
-- `LASTFM_USERNAME`
+- `LASTFM_API_KEY`, `LASTFM_USERNAME` — for Last.fm widget
+- `NEWS_API_KEY` — for News widget
 
 Do not commit your credentials.
 
@@ -94,7 +136,10 @@ Do not commit your credentials.
 | Theme        | Additional Requirements                  |
 |--------------|------------------------------------------|
 | **Overload** | None                                     |
+| **News**     | `curl`, NewsAPI.org key                  |
 | **LastFM**   | `curl`, `lua-dkjson`, Last.fm API key    |
+| **Market**   | `curl`, Market API key                   |
+| **Quote**    | None                                     |
 
 ### Installation Commands
 
@@ -111,15 +156,15 @@ sudo dnf install conky curl lua-dkjson
 
 ## Theme Comparison
 
-| Feature            | Overload          | LastFM        |
-|--------------------|-------------------|---------------|
-| **Purpose**        | System monitoring | Music display |
-| **Complexity**     | Simple            | Moderate      |
-| **Dependencies**   | Conky only        | Conky + API   |
-| **Network**        | No                | Yes           |
-| **Setup Time**     | 2 minutes         | 5 minutes     |
-| **Customization**  | High              | High          |
-| **Resource Usage** | Minimal           | Minimal       |
+| Feature            | Overload          | News          | LastFM        | Market       | Quote         |
+|--------------------|-------------------|---------------|---------------|--------------|---------------|
+| **Purpose**        | System monitoring | News headlines| Music display | Stock data   | Inspiration   |
+| **Complexity**     | Simple            | Moderate      | Moderate      | Simple       | Simple        |
+| **Dependencies**   | Conky only        | Conky + API   | Conky + API   | Conky + API  | Conky only    |
+| **Network**        | No                | Yes           | Yes           | Yes          | No            |
+| **Setup Time**     | 2 minutes         | 5 minutes     | 5 minutes     | 5 minutes    | 1 minute      |
+| **Customization**  | High              | Medium        | Medium        | Low          | Low           |
+| **Resource Usage** | Minimal           | Minimal       | Minimal       | Minimal      | Minimal       |
 
 ## Repository Structure
 
@@ -128,24 +173,38 @@ conky-themes-repo/
 ├── README.md                
 ├── LICENSE                  # MIT License
 ├── .env.template            # API credentials template
-├── api.env                  # API credentials (keep untracked/private)
 ├── lua-configs/             # Lua modules and helpers
+│   ├── data.lua
+│   ├── ipinfo.lua
 │   ├── lastfm.lua
-│   ├── network.lua
+│   ├── market.lua
+│   ├── news.lua
+│   ├── quote.lua
 │   └── weather.lua
 ├── widgets/                 # Conky RCs and theme configs
 │   ├── cpurc
 │   ├── gpurc
-│   ├── networkrc
-│   ├── memoryrc
-│   ├── systemrc
 │   ├── lastfmrc
+│   ├── marketrc
+│   ├── memoryrc
+│   ├── networkrc
+│   ├── newsrc
+│   ├── quoterc
+│   ├── systemrc
 │   └── weatherrc
 └── assets/                  # Screenshots & resources
-    ├── overload_example.png
-    ├── example1.png
-    ├── example2.png
-    └── icons/
+    ├── cpurc.png
+    ├── gpurc.png
+    ├── lastfmrc.png
+    ├── marketrc.png
+    ├── memoryrc.png
+    ├── networkrc.png
+    ├── newsrc.png
+    ├── quoterc.png
+    ├── systemrc.png
+    ├── weatherrc.png
+    ├── icons/
+    └── Smash Stadium Font.ttf
 ```
 
 ## License
