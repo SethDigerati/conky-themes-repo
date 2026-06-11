@@ -69,7 +69,7 @@ local function fetch_topic(topic_key)
     local url
     if topic.endpoint == "everything" then
         url = "https://newsapi.org/v2/everything?q=" .. topic.q
-            .. "&language=en&pageSize=2&apiKey=" .. API_KEY
+            .. "&language=en&pageSize=5&apiKey=" .. API_KEY
     else
         url = "https://newsapi.org/v2/top-headlines?language=en&pageSize=2&apiKey=" .. API_KEY
         if topic.category then
@@ -149,9 +149,19 @@ local function word_wrap(text, max)
     local lines = {}
     while #text > max do
         local pos = text:sub(1, max):match("^.+%s()")
-        if not pos then pos = max + 1 end
-        table.insert(lines, text:sub(1, pos - 1))
-        text = text:sub(pos + 1)
+        if pos then
+            local next_line = text:sub(pos)
+            if #next_line > 0 and #next_line < 4 then
+                table.insert(lines, text:sub(1, pos - 2) .. " " .. next_line)
+                text = ""
+                break
+            end
+            table.insert(lines, text:sub(1, pos - 2))
+            text = next_line
+        else
+            table.insert(lines, text:sub(1, max))
+            text = text:sub(max + 1)
+        end
     end
     if #text > 0 then table.insert(lines, text) end
     return table.concat(lines, "\n")
@@ -163,7 +173,7 @@ local function load_topic(topic_key)
 
     for i = 1, 2 do
         if articles[i] then
-            _G["news_" .. topic_key .. "_" .. i .. "_title"]   = word_wrap(articles[i].title or "", 60)
+            _G["news_" .. topic_key .. "_" .. i .. "_title"]   = word_wrap(articles[i].title or "", 55)
             _G["news_" .. topic_key .. "_" .. i .. "_source"]  = articles[i].source or ""
             _G["news_" .. topic_key .. "_" .. i .. "_country"] = ""
             _G["news_" .. topic_key .. "_" .. i .. "_date"]    = articles[i].date or ""
