@@ -99,7 +99,7 @@ ${color1}[${lua conky_news_space_1_source}]${alignr}${lua conky_news_space_1_dat
 ${lua conky_news_space_1_title}
 ${color1}[${lua conky_news_space_2_source}]${alignr}${lua conky_news_space_2_date} | ${lua conky_news_space_2_time} ${color0}
 ${lua conky_news_space_2_title}
-${alignc}━━━━━━━━━━━━━━━━━━${color2} CLIMATE${color0} ━━━━━━━━━━━━━━━━━━
+${alignc}━━━━━━━━━━━━━━━━━━${color2} CLIMATE ${color0}━━━━━━━━━━━━━━━━━━
 ${color1}[${lua conky_news_weather_1_source}]${alignr}${lua conky_news_weather_1_date} | ${lua conky_news_weather_1_time} ${color0}
 ${lua conky_news_weather_1_title}
 ${color1}[${lua conky_news_weather_2_source}]${alignr}${lua conky_news_weather_2_date} | ${lua conky_news_weather_2_time} ${color0}

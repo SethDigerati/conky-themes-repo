@@ -7,6 +7,7 @@ local API_KEY = ""
 local NEWS_TTL = 3000
 
 local last_fetch = {}
+local loaded = {}
 local TOPICS = {
     tech = { endpoint = "top-headlines", category = "technology" },
     science = { endpoint = "top-headlines", category = "science" },
@@ -48,8 +49,24 @@ end
 API_KEY = read_env("NEWS_API_KEY") or os.getenv("NEWS_API_KEY") or ""
 
 local function extract_json_str(content, key)
-    local pat = '"' .. key .. '"%s*:%s*"([^"]*)"'
-    return content:match(pat)
+    local start = content:find('"' .. key .. '"%s*:%s*"')
+    if not start then return nil end
+    start = content:find('"', start + 1)
+    if not start then return nil end
+    local i, result = start + 1, {}
+    while i <= #content do
+        local c = content:sub(i, i)
+        if c == '\\' then
+            table.insert(result, content:sub(i, i + 1))
+            i = i + 2
+        elseif c == '"' then
+            break
+        else
+            table.insert(result, c)
+            i = i + 1
+        end
+    end
+    return table.concat(result)
 end
 
 local function fetch_topic(topic_key)
@@ -115,6 +132,12 @@ local function parse_articles(topic_key)
 
         local source = obj:match('"source"%s*:%s*{[^}]*"name"%s*:%s*"([^"]*)"') or ""
         local description = extract_json_str(obj, "description") or ""
+        if description == "" then
+            description = extract_json_str(obj, "content") or ""
+            if description ~= "" then
+                description = description:gsub("%[%+%d+ chars%]$", "")
+            end
+        end
         local pub_date = extract_json_str(obj, "publishedAt") or ""
 
         if description ~= "" then
@@ -166,7 +189,13 @@ end
 
 local function load_topic(topic_key)
     local articles = parse_articles(topic_key)
-    if not articles then return end
+    if not articles then
+        if loaded[topic_key] then
+            return
+        end
+        return
+    end
+    loaded[topic_key] = true
 
     for i = 1, 2 do
         if articles[i] then
@@ -184,7 +213,7 @@ local fetch_index = 1
 
 for _, topic in ipairs(fetch_order) do
     for art = 1, 2 do
-        _G["news_" .. topic .. "_" .. art .. "_title"]   = ""
+        _G["news_" .. topic .. "_" .. art .. "_title"]   = "(loading...)"
         _G["news_" .. topic .. "_" .. art .. "_source"]  = ""
         _G["news_" .. topic .. "_" .. art .. "_country"] = ""
         _G["news_" .. topic .. "_" .. art .. "_date"]    = ""
