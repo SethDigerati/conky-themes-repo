@@ -2,19 +2,19 @@ local script_dir = debug.getinfo(1, "S").source:match("^@(.*/)")
 if not script_dir then script_dir = "" end
 
 local DATA_BASE = "/tmp/conky"
-local CURL = "/usr/bin/curl"
+local CURL = "/usr/bin/curl --max-time 10"
 local API_KEY = ""
 local NEWS_TTL = 3000
 
 local last_fetch = {}
 local TOPICS = {
-    tech = { category = "technology", q = "" },
-    science = { category = "science", q = "" },
-    space = { category = "science", q = "space" },
-    politics = { category = "general", q = "politics" },
-    finance = { category = "business", q = "" },
-    weather = { category = "general", q = "climate" },
-    sports = { category = "sports", q = "" },
+    tech = { endpoint = "top-headlines", category = "technology" },
+    science = { endpoint = "top-headlines", category = "science" },
+    space = { endpoint = "everything", q = "space" },
+    politics = { endpoint = "everything", q = "politics" },
+    finance = { endpoint = "top-headlines", category = "business" },
+    weather = { endpoint = "everything", q = "climate" },
+    sports = { endpoint = "top-headlines", category = "sports" },
 }
 
 local function ensure_dir(path)
@@ -66,11 +66,18 @@ local function fetch_topic(topic_key)
 
     ensure_dir(DATA_BASE .. "/news")
 
-    local url = "https://newsapi.org/v2/top-headlines?category="
-        .. topic.category
-        .. "&language=en&pageSize=2&apiKey=" .. API_KEY
-    if topic.q ~= "" then
-        url = url .. "&q=" .. topic.q
+    local url
+    if topic.endpoint == "everything" then
+        url = "https://newsapi.org/v2/everything?q=" .. topic.q
+            .. "&language=en&pageSize=2&apiKey=" .. API_KEY
+    else
+        url = "https://newsapi.org/v2/top-headlines?language=en&pageSize=2&apiKey=" .. API_KEY
+        if topic.category then
+            url = url .. "&category=" .. topic.category
+        end
+        if topic.q then
+            url = url .. "&q=" .. topic.q
+        end
     end
 
     local outfile = DATA_BASE .. "/news/" .. topic_key .. ".json"
