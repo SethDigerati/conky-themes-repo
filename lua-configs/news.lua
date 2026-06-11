@@ -49,11 +49,9 @@ end
 API_KEY = read_env("NEWS_API_KEY") or os.getenv("NEWS_API_KEY") or ""
 
 local function extract_json_str(content, key)
-    local start = content:find('"' .. key .. '"%s*:%s*"')
-    if not start then return nil end
-    start = content:find('"', start + 1)
-    if not start then return nil end
-    local i, result = start + 1, {}
+    local _, e = content:find('"' .. key .. '"%s*:%s*"')
+    if not e then return nil end
+    local i, result = e + 1, {}
     while i <= #content do
         local c = content:sub(i, i)
         if c == '\\' then
