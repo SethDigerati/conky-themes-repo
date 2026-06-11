@@ -11,10 +11,7 @@ local TOPICS = {
     tech = { endpoint = "top-headlines", category = "technology" },
     science = { endpoint = "top-headlines", category = "science" },
     space = { endpoint = "everything", q = "space" },
-    politics = { endpoint = "everything", q = "politics" },
-    finance = { endpoint = "top-headlines", category = "business" },
     weather = { endpoint = "everything", q = "climate" },
-    sports = { endpoint = "top-headlines", category = "sports" },
 }
 
 local function ensure_dir(path)
@@ -182,7 +179,7 @@ local function load_topic(topic_key)
     end
 end
 
-local fetch_order = { "tech", "science", "space", "politics", "finance", "weather", "sports" }
+local fetch_order = { "tech", "science", "space", "weather" }
 local fetch_index = 1
 
 for _, topic in ipairs(fetch_order) do
