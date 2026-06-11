@@ -83,7 +83,7 @@ conky.config = {
 
 conky.text = [[
 ${color2}NEWS${color0}${voffset -2}${hr 1}
-${color0}${lua conky_news_source}
+${color0}${lua conky_news_source}${voffset -2}${hr 1}
 ${color2}TECH${color0}${voffset -2}${hr 1}
 ${color1}[${lua conky_news_tech_1_source}]${alignr}${lua conky_news_tech_1_date} | ${lua conky_news_tech_1_time} ${color0}
 ${lua conky_news_tech_1_title}
