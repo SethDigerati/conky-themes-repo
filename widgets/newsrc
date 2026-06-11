@@ -85,48 +85,38 @@ conky.text = [[
 ${color2}NEWS${color0}${voffset -2}${hr 1}
 ${color0}${lua conky_news_source}
 ${color2}TECH${color0}${voffset -2}${hr 1}
-${color1}[${lua conky_news_tech_1_source}]${alignr}◎ ${lua conky_news_tech_1_country}${lua conky_news_tech_1_date}, ${lua conky_news_tech_1_time} ${color0}
+${color1}[${lua conky_news_tech_1_source}]${alignr}${lua conky_news_tech_1_date} | ${lua conky_news_tech_1_time} ${color0}
 ${lua conky_news_tech_1_title}
-${color1}[${lua conky_news_tech_2_source}]${alignr}◎ ${lua conky_news_tech_2_country}${lua conky_news_tech_2_date}, ${lua conky_news_tech_2_time} ${color0}
+${color1}[${lua conky_news_tech_2_source}]${alignr}${lua conky_news_tech_2_date} | ${lua conky_news_tech_2_time} ${color0}
 ${lua conky_news_tech_2_title}
 ${color2}SCIENCE${color0}${voffset -2}${hr 1}
-${color1}[${lua conky_news_science_1_source}]${alignr}◎ ${lua conky_news_science_1_country}${lua conky_news_science_1_date}, ${lua conky_news_science_1_time} ${color0}
+${color1}[${lua conky_news_science_1_source}]${alignr}${lua conky_news_science_1_date} | ${lua conky_news_science_1_time} ${color0}
 ${lua conky_news_science_1_title}
-${color1}[${lua conky_news_science_2_source}]${alignr}◎ ${lua conky_news_science_2_country}${lua conky_news_science_2_date}, ${lua conky_news_science_2_time} ${color0}
+${color1}[${lua conky_news_science_2_source}]${alignr}${lua conky_news_science_2_date} | ${lua conky_news_science_2_time} ${color0}
 ${lua conky_news_science_2_title}
 ${color2}SPACE${color0}${voffset -2}${hr 1}
-${color1}[${lua conky_news_space_1_source}]${alignr}◎ ${lua conky_news_space_1_country}${lua conky_news_space_1_date}, ${lua conky_news_space_1_time} ${color0}
+${color1}[${lua conky_news_space_1_source}]${alignr}${lua conky_news_space_1_date} | ${lua conky_news_space_1_time} ${color0}
 ${lua conky_news_space_1_title}
-${color1}[${lua conky_news_space_2_source}]${alignr}◎ ${lua conky_news_space_2_country}${lua conky_news_space_2_date}, ${lua conky_news_space_2_time} ${color0}
+${color1}[${lua conky_news_space_2_source}]${alignr}${lua conky_news_space_2_date} | ${lua conky_news_space_2_time} ${color0}
 ${lua conky_news_space_2_title}
 ${color2}POLITICS${color0}${voffset -2}${hr 1}
-${color1}[${lua conky_news_politics_1_source}]${alignr}◎ ${lua conky_news_politics_1_country}${lua conky_news_politics_1_date}, ${lua conky_news_politics_1_time} ${color0}
+${color1}[${lua conky_news_politics_1_source}]${alignr}${lua conky_news_politics_1_date} | ${lua conky_news_politics_1_time} ${color0}
 ${lua conky_news_politics_1_title}
-${color1}[${lua conky_news_politics_2_source}]${alignr}◎ ${lua conky_news_politics_2_country}${lua conky_news_politics_2_date}, ${lua conky_news_politics_2_time} ${color0}
+${color1}[${lua conky_news_politics_2_source}]${alignr}${lua conky_news_politics_2_date} | ${lua conky_news_politics_2_time} ${color0}
 ${lua conky_news_politics_2_title}
-${color2}ENTERTAINMENT${color0}${voffset -2}${hr 1}
-${color1}[${lua conky_news_entertainment_1_source}]${alignr}◎ ${lua conky_news_entertainment_1_country}${lua conky_news_entertainment_1_date}, ${lua conky_news_entertainment_1_time} ${color0}
-${lua conky_news_entertainment_1_title}
-${color1}[${lua conky_news_entertainment_2_source}]${alignr}◎ ${lua conky_news_entertainment_2_country}${lua conky_news_entertainment_2_date}, ${lua conky_news_entertainment_2_time} ${color0}
-${lua conky_news_entertainment_2_title}
 ${color2}BUSINESS${color0}${voffset -2}${hr 1}
-${color1}[${lua conky_news_finance_1_source}]${alignr}◎ ${lua conky_news_finance_1_country}${lua conky_news_finance_1_date}, ${lua conky_news_finance_1_time} ${color0}
+${color1}[${lua conky_news_finance_1_source}]${alignr}${lua conky_news_finance_1_date} | ${lua conky_news_finance_1_time} ${color0}
 ${lua conky_news_finance_1_title}
-${color1}[${lua conky_news_finance_2_source}]${alignr}◎ ${lua conky_news_finance_2_country}${lua conky_news_finance_2_date}, ${lua conky_news_finance_2_time} ${color0}
+${color1}[${lua conky_news_finance_2_source}]${alignr}${lua conky_news_finance_2_date} | ${lua conky_news_finance_2_time} ${color0}
 ${lua conky_news_finance_2_title}
 ${color2}CLIMATE${color0}${voffset -2}${hr 1}
-${color1}[${lua conky_news_weather_1_source}]${alignr}◎ ${lua conky_news_weather_1_country}${lua conky_news_weather_1_date}, ${lua conky_news_weather_1_time} ${color0}
+${color1}[${lua conky_news_weather_1_source}]${alignr}${lua conky_news_weather_1_date} | ${lua conky_news_weather_1_time} ${color0}
 ${lua conky_news_weather_1_title}
-${color1}[${lua conky_news_weather_2_source}]${alignr}◎ ${lua conky_news_weather_2_country}${lua conky_news_weather_2_date}, ${lua conky_news_weather_2_time} ${color0}
+${color1}[${lua conky_news_weather_2_source}]${alignr}${lua conky_news_weather_2_date} | ${lua conky_news_weather_2_time} ${color0}
 ${lua conky_news_weather_2_title}
 ${color2}SPORTS${color0}${voffset -2}${hr 1}
-${color1}[${lua conky_news_sports_1_source}]${alignr}◎ ${lua conky_news_sports_1_country}${lua conky_news_sports_1_date}, ${lua conky_news_sports_1_time} ${color0}
+${color1}[${lua conky_news_sports_1_source}]${alignr}${lua conky_news_sports_1_date} | ${lua conky_news_sports_1_time} ${color0}
 ${lua conky_news_sports_1_title}
-${color1}[${lua conky_news_sports_2_source}]${alignr}◎ ${lua conky_news_sports_2_country}${lua conky_news_sports_2_date}, ${lua conky_news_sports_2_time} ${color0}
+${color1}[${lua conky_news_sports_2_source}]${alignr}${lua conky_news_sports_2_date} | ${lua conky_news_sports_2_time} ${color0}
 ${lua conky_news_sports_2_title}
-${color2}F1${color0}${voffset -2}${hr 1}
-${color1}[${lua conky_news_f1_1_source}]${alignr}◎ ${lua conky_news_f1_1_country}${lua conky_news_f1_1_date}, ${lua conky_news_f1_1_time} ${color0}
-${lua conky_news_f1_1_title}
-${color1}[${lua conky_news_f1_2_source}]${alignr}◎ ${lua conky_news_f1_2_country}${lua conky_news_f1_2_date}, ${lua conky_news_f1_2_time} ${color0}
-${lua conky_news_f1_2_title}
 ]]
