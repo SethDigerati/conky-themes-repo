@@ -1,0 +1,113 @@
+-- **********************************************************************
+--  Conky Theme: Overload
+--  Author: Seth Digerati
+--  Description: A fork and redesign of teejeetech(teejee2008@gmail.com) original conky theme
+-- **********************************************************************
+
+local CONFIG_DIR = (debug.getinfo(1, "S").source:match("^@(.*/)") or "./")
+
+conky.config = {
+    -- Basic settings
+    background = true,
+
+    -- Position
+    alignment = 'bottom_left',
+
+    -- Border settings
+    border_width = 1,
+    draw_borders = false,
+    draw_outline = false,
+
+    -- Sampling
+    cpu_avg_samples = 5,
+    net_avg_samples = 5,
+    diskio_avg_samples = 5,
+
+    -- Buffer and output settings
+    no_buffers = true,
+    out_to_console = false,
+    out_to_stderr = false,
+    extra_newline = false,
+    double_buffer = true,
+    draw_shades = false,
+
+    -- Placement
+    gap_x = 0,
+    gap_y = 10,
+
+    -- Window properties
+    own_window = true,
+    own_window_type = 'normal',
+    own_window_transparent = true,
+    own_window_colour = '000000',
+    own_window_argb_visual = true,
+    own_window_argb_value = 0,
+    own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',
+
+    -- Size
+    minimum_width = 400,
+    maximum_width = 400,
+
+    -- Misc settings
+    stippled_borders = 0,
+    update_interval = 60,
+    uppercase = false,
+    use_spacer = 'none',
+    temperature_unit = 'celsius',
+
+    -- Graph display
+    show_graph_scale = false,
+    show_graph_range = false,
+    draw_graph_borders = false,
+
+    -- Text and font
+    use_xft = true,
+    draw_shades = true,
+    xftalpha = 100,
+    font = 'Iosevka:size=10',
+
+    -- Colors
+    default_color = 'white',
+    default_outline_color = 'white',
+    default_shade_color = 'black',
+    color0 = 'white',
+    color1 = '#EAEAEA',
+    color2 = '#FFE020',
+    color3 = 'black',
+    color4 = 'green',
+    color5 = 'pink',
+
+    lua_load = CONFIG_DIR .. '../lua-configs/news.lua',
+    lua_draw_hook_post = 'conky_update_news',
+}
+
+conky.text = [[
+${color2}NEWS${color0}${voffset -2}${hr 1}
+
+${color2}TECH${color0}${voffset -2}${hr 1}
+${lua conky_news_tech}
+
+${color2}SCIENCE${color0}${voffset -2}${hr 1}
+${lua conky_news_science}
+
+${color2}SPACE${color0}${voffset -2}${hr 1}
+${lua conky_news_space}
+
+${color2}POLITICS${color0}${voffset -2}${hr 1}
+${lua conky_news_politics}
+
+${color2}ENTERTAINMENT${color0}${voffset -2}${hr 1}
+${lua conky_news_entertainment}
+
+${color2}FINANCE / BUSINESS${color0}${voffset -2}${hr 1}
+${lua conky_news_finance}
+
+${color2}WEATHER / DISASTER / CLIMATE${color0}${voffset -2}${hr 1}
+${lua conky_news_weather}
+
+${color2}SPORTS${color0}${voffset -2}${hr 1}
+${lua conky_news_sports}
+
+${color2}F1${color0}${voffset -2}${hr 1}
+${lua conky_news_f1}
+]]
