@@ -2,19 +2,19 @@ local script_dir = debug.getinfo(1, "S").source:match("^@(.*/)")
 if not script_dir then script_dir = "" end
 
 local DATA_BASE = "/tmp/conky"
-local CURL = "/usr/bin/curl --max-time 8"
+local CURL = "/usr/bin/curl"
 local API_KEY = ""
 local NEWS_TTL = 3000
 
 local last_fetch = {}
 local TOPICS = {
-    tech = "technology",
-    science = "science",
-    space = "space",
-    politics = "politics",
-    finance = "finance",
-    weather = "environment",
-    sports = "sports",
+    tech = { category = "technology", q = "" },
+    science = { category = "science", q = "" },
+    space = { category = "science", q = "space" },
+    politics = { category = "general", q = "politics" },
+    finance = { category = "business", q = "" },
+    weather = { category = "general", q = "climate" },
+    sports = { category = "sports", q = "" },
 }
 
 local function ensure_dir(path)
@@ -55,11 +55,6 @@ local function extract_json_str(content, key)
     return content:match(pat)
 end
 
-local function extract_json_arr_first(content, key)
-    local pat = '"' .. key .. '"%s*:%s*%[%s*"([^"]*)"'
-    return content:match(pat)
-end
-
 local function fetch_topic(topic_key)
     local topic = TOPICS[topic_key]
     if not topic or API_KEY == "" then return end
@@ -71,13 +66,16 @@ local function fetch_topic(topic_key)
 
     ensure_dir(DATA_BASE .. "/news")
 
-    local url = "https://api.freenewsapi.io/v1/news?topic="
-        .. topic:gsub(" ", "%%20")
-        .. "&language=en"
+    local url = "https://newsapi.org/v2/top-headlines?category="
+        .. topic.category
+        .. "&language=en&pageSize=2&apiKey=" .. API_KEY
+    if topic.q ~= "" then
+        url = url .. "&q=" .. topic.q
+    end
 
     local outfile = DATA_BASE .. "/news/" .. topic_key .. ".json"
     local tmpfile = outfile .. ".tmp"
-    local cmd = CURL .. ' -s -H "x-api-key: ' .. API_KEY .. '" "' .. url .. '"'
+    local cmd = CURL .. ' -s "' .. url .. '"'
 
     os.execute(cmd .. ' > "' .. tmpfile .. '" 2>/dev/null && mv "' .. tmpfile .. '" "' .. outfile .. '" &')
 
@@ -88,44 +86,50 @@ local function parse_articles(topic_key)
     local content = read_file(DATA_BASE .. "/news/" .. topic_key .. ".json")
     if not content or content == "" then return nil end
 
-    local data_start = content:find('"data"%s*:%s*%[')
-    if not data_start then return nil end
+    local articles_start = content:find('"articles"%s*:%s*%[')
+    if not articles_start then return nil end
 
-    local data_section = content:sub(data_start):gsub("%s+", " ")
+    local section = content:sub(articles_start):gsub("%s+", " ")
     local articles, pos = {}, 1
 
     while #articles < 2 do
-        local s, e = data_section:find('{.-}', pos)
-        if not s then break end
+        local obj_start = section:find('{', pos)
+        if not obj_start then break end
 
-        local obj = data_section:sub(s, e)
-        pos = e + 1
-
-        if obj:find('"uuid"') then
-            local title = extract_json_str(obj, "title") or ""
-            local source = extract_json_str(obj, "publisher") or ""
-            local country = extract_json_arr_first(obj, "countries") or ""
-            local pub_date = extract_json_str(obj, "published_at") or ""
-
-            if title ~= "" then
-
-                local date_str, time_str = "", ""
-                if pub_date then
-                    local y, m, d, h, mi = pub_date:match("(%d%d%d%d)-(%d%d)-(%d%d)T(%d%d):(%d%d)")
-                    if y then
-                        date_str = string.format("%s.%s.%s", d, m, y:sub(3, 4))
-                        time_str = string.format("%s%s", h, mi)
-                    end
-                end
-
-                table.insert(articles, {
-                    title = title,
-                    source = source,
-                    country = country,
-                    date = date_str,
-                    time = time_str,
-                })
+        local depth, i = 1, obj_start + 1
+        while depth > 0 and i <= #section do
+            local c = section:sub(i, i)
+            if c == '{' then depth = depth + 1
+            elseif c == '}' then depth = depth - 1
             end
+            i = i + 1
+        end
+        if depth ~= 0 then break end
+
+        local obj = section:sub(obj_start, i - 1)
+        pos = i
+
+        local source = obj:match('"source"%s*:%s*{[^}]*"name"%s*:%s*"([^"]*)"') or ""
+        local description = extract_json_str(obj, "description") or ""
+        local pub_date = extract_json_str(obj, "publishedAt") or ""
+
+        if description ~= "" then
+            local date_str, time_str = "", ""
+            if pub_date then
+                local y, m, d, h, mi = pub_date:match("(%d%d%d%d)-(%d%d)-(%d%d)T(%d%d):(%d%d)")
+                if y then
+                    date_str = string.format("%s.%s.%s", d, m, y:sub(3, 4))
+                    time_str = string.format("%s%s", h, mi)
+                end
+            end
+
+            table.insert(articles, {
+                title = description,
+                source = source,
+                country = "",
+                date = date_str,
+                time = time_str,
+            })
         end
     end
 
@@ -152,9 +156,9 @@ local function load_topic(topic_key)
 
     for i = 1, 2 do
         if articles[i] then
-            _G["news_" .. topic_key .. "_" .. i .. "_title"]   = word_wrap(articles[i].title or "", 50)
+            _G["news_" .. topic_key .. "_" .. i .. "_title"]   = word_wrap(articles[i].title or "", 60)
             _G["news_" .. topic_key .. "_" .. i .. "_source"]  = articles[i].source or ""
-            _G["news_" .. topic_key .. "_" .. i .. "_country"] = articles[i].country or ""
+            _G["news_" .. topic_key .. "_" .. i .. "_country"] = ""
             _G["news_" .. topic_key .. "_" .. i .. "_date"]    = articles[i].date or ""
             _G["news_" .. topic_key .. "_" .. i .. "_time"]    = articles[i].time or ""
         end
@@ -164,7 +168,6 @@ end
 local fetch_order = { "tech", "science", "space", "politics", "finance", "weather", "sports" }
 local fetch_index = 1
 
--- Initialize all globals to empty strings (so template renders immediately)
 for _, topic in ipairs(fetch_order) do
     for art = 1, 2 do
         _G["news_" .. topic .. "_" .. art .. "_title"]   = ""
@@ -185,7 +188,7 @@ function conky_update_news()
     end
 end
 
-function conky_news_source() return "SOURCE: FreeNewsApi.io" end
+function conky_news_source() return "SOURCE: NewsAPI.org" end
 
 local field_names = { "title", "source", "country", "date", "time" }
 for _, topic in ipairs(fetch_order) do
